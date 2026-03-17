@@ -8,7 +8,7 @@
 - [x] FastAPI backend endpoint
 - [x] CrewAI agent with OpenRouter
 - [x] Include Tavily, CSV, and Calculator tools
-- [ ] Display reasoning logs and final itinerary
+- [x] Display reasoning logs and final itinerary
 
 ## Phases
 
@@ -23,11 +23,11 @@
 **Requirements**: REQ-04, REQ-05, REQ-06, REQ-07, REQ-08, REQ-09
 
 ### Phase 3: Agent Workflow & Reasoning Execution
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Connect backend endpoint to the agent execution, ensure ReAct reasoning pattern, and format output.
 **Requirements**: REQ-10
 
 ### Phase 4: Frontend Development & Integration
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Build React frontend, connect to FastAPI backend, display the generated itinerary and reasoning.
 **Requirements**: REQ-01, REQ-02
