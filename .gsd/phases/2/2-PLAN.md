@@ -38,14 +38,15 @@ Create the three required tools for the CrewAI Agent: Tavily Search Tool, CSV Pa
     - backend/requirements.txt
   </files>
   <action>
-    - Add `langchain-community`, `tavily-python` and `numexpr` to `backend/requirements.txt`.
+    - Remove `langchain-community`, and replace it with `requests` if not already present in requirements (though Tavily has its own client). Ensure `tavily-python` and `numexpr` are in `backend/requirements.txt`.
     - Create `backend/tools.py`.
-    - Implement `TavilySearchTool` (or use existing Langchain wrapper) reading `TAVILY_API_KEY`.
-    - Implement a custom `CalculatorTool` using Langchain `@tool` decorator or simple Python math/eval that takes a mathematical expression and returns the result safely.
-    - Implement a `CSVDatasetTool` using Langchain `@tool` decorator that loads `data/destinations.csv` with Pandas and searches by city name.
+    - Import `tool` from `crewai.tools` instead of LangChain's decorator.
+    - Implement a `TavilySearchTool` wrapper using the `tavily-python` client directly and decorating a python function with `@tool("Search web")`.
+    - Implement a custom `CalculatorTool` using `@tool("Calculate")` that takes a mathematical expression as a string and evaluates it safely using `numexpr` or basic math.
+    - Implement a `CSVDatasetTool` using `@tool("Search CSV")` that loads `data/destinations.csv` with Pandas and searches by city name, returning a formatted string.
   </action>
-  <verify>Get-Content backend/tools.py | Select-String "@tool"</verify>
-  <done>Three distinct tools (Tavily, Calculator, CSV) are defined and ready for the agent to use.</done>
+  <verify>Get-Content backend/tools.py | Select-String "from crewai.tools import tool"</verify>
+  <done>Three distinct plain Python tools (Tavily, Calculator, CSV) are defined using CrewAI's native `@tool` decorator, without LangChain.</done>
 </task>
 
 ## Success Criteria
