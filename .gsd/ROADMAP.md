@@ -5,7 +5,7 @@
 
 ## Must-Haves (from SPEC)
 - [ ] Frontend UI for user input
-- [ ] FastAPI backend endpoint
+- [x] FastAPI backend endpoint
 - [ ] CrewAI agent with OpenRouter
 - [ ] Include Tavily, CSV, and Calculator tools
 - [ ] Display reasoning logs and final itinerary
@@ -13,7 +13,7 @@
 ## Phases
 
 ### Phase 1: Foundation & Backend Setup
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Set up modular folder structure, FastAPI server, and define the /plan-trip endpoint structure.
 **Requirements**: REQ-03, REQ-11
 
