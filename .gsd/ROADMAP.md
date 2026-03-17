@@ -6,8 +6,8 @@
 ## Must-Haves (from SPEC)
 - [ ] Frontend UI for user input
 - [x] FastAPI backend endpoint
-- [ ] CrewAI agent with OpenRouter
-- [ ] Include Tavily, CSV, and Calculator tools
+- [x] CrewAI agent with OpenRouter
+- [x] Include Tavily, CSV, and Calculator tools
 - [ ] Display reasoning logs and final itinerary
 
 ## Phases
@@ -18,7 +18,7 @@
 **Requirements**: REQ-03, REQ-11
 
 ### Phase 2: Agent Layer & Tool Integration
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Integrate OpenRouter, configure CrewAI, and implement the three mandatory tools (Tavily, CSV, Calculator).
 **Requirements**: REQ-04, REQ-05, REQ-06, REQ-07, REQ-08, REQ-09
 
