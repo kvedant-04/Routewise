@@ -28,15 +28,20 @@ Connect the customized tools to the CrewAI Agent, define the exact tasks for the
   <action>
     - Update `backend/main.py` and `backend/agent_core.py` to import the tools from `tools.py`.
     - Modify `agent_core.py` or the `main.py` endpoint so the `travel_planner_agent` includes the tools array: `[search_web, calculate_expression, search_csv]`.
-    - Inside the `/plan-trip` endpoint in `main.py`, create a CrewAI `Task`. The task description should instruct the agent to:
-      1. Use the CSV tool to check for local tips about the {destination}.
-      2. Use the Web Search tool to find current weather and events for the {destination}.
-      3. Use the Calculator tool to breakdown the user's budget ({budget}) across {days} days and estimate daily costs.
-      4. Synthesize all this into a structured itinerary.
-    - Create a `Crew` with the `travel_planner_agent` and the constructed task.
+    - Inside the `/plan-trip` endpoint in `main.py`, create a CrewAI `Task`. The task description MUST explicitly enforce the ReAct reasoning format (Thought -> Action -> Observation -> Final Answer).
+    - Instruct the agent to execute this specific sequence:
+      1. Use `Search CSV` to retrieve city insights and base costs for {destination}.
+      2. Use `Search web` to fetch real-time travel information, weather, or events for {destination}.
+      3. Use `Calculate` to breakdown the {budget} across {days} days and estimate daily costs vs expected costs.
+    - Require the final output to be well-structured including:
+      - Day-wise itinerary (Day 1, Day 2, etc.)
+      - Estimated daily and total cost
+      - Attractions to visit
+      - Best time recommendations
+    - Create a `Crew` with the `travel_planner_agent` and the constructed task. Set `verbose=True` to ensure logs are clearly visible in the console.
     - Call `crew.kickoff()` to execute the flow.
-    - Capture the final result from the kickoff and return it in the `itinerary` field of `TripResponse`.
-    - For `reasoning_logs`, either redirect `sys.stdout` temporarily during `crew.kickoff()` (since `verbose=True` prints to console) or just return a placeholder string indicating logs are in the console.
+    - Return the final result in the `itinerary` field of `TripResponse`.
+    - For `reasoning_logs`, return a placeholder string "Reasoning logs are printed to the console."
   </action>
   <verify>Get-Content backend/main.py | Select-String "crew.kickoff()"</verify>
   <done>The FastAPI endpoint triggers the CrewAI workflow utilizing all three tools and returns the generated itinerary.</done>
