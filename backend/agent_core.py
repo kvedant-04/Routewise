@@ -3,6 +3,9 @@ from dotenv import load_dotenv
 from crewai import Agent
 from langchain_openai import ChatOpenAI
 
+# Import tool functions decorated with @tool from tools.py
+from tools import search_web, calculate_expression, search_csv
+
 load_dotenv()
 
 # Initialize OpenRouter LLM using LangChain's ChatOpenAI wrapper
@@ -23,5 +26,6 @@ travel_planner_agent = Agent(
     ),
     verbose=True,
     allow_delegation=False,
-    llm=llm
+    llm=llm,
+    tools=[search_web, calculate_expression, search_csv]
 )
