@@ -26,20 +26,33 @@ search_csv = Tool.from_function(
     description="Lookup destination data from the local CSV database.",
 )
 
-# Initialize OpenRouter LLM using LangChain's ChatOpenAI wrapper
-# OpenRouter is OpenAI compatible, just swap the base_url
-llm = ChatOpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.environ.get("OPENROUTER_API_KEY", "dummy_key"),
-    model="openai/gpt-4o-mini", # Default model for the agent
-)
+def get_llm(max_tokens: int = 4000):
+    """
+    Initialize OpenRouter LLM with dynamic max_tokens.
+    Ensures the API key is present before initialization.
+    """
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key or api_key == "sk-or-v1-xxxx":
+        raise ValueError("OPENROUTER_API_KEY not found in environment. Check backend/.env")
 
-travel_planner_agent = Agent(
-    role="Travel Planner Agent",
-    goal="Plan complete travel itineraries using available tools",
-    backstory="An expert AI travel planner that uses web search, dataset and calculations",
-    tools=[search_web, calculate_expression, search_csv],
-    verbose=True,
-    allow_delegation=False,
-    llm=llm
-)
+    return ChatOpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=api_key,
+        model="openai/gpt-4o-mini",
+        max_tokens=max_tokens,
+    )
+
+def create_travel_planner_agent(max_tokens: int = 4000):
+    """
+    Returns a configured Travel Planner Agent with specified token limits.
+    """
+    return Agent(
+        role="Travel Planner Agent",
+        goal="Plan complete travel itineraries using available tools",
+        backstory="An expert AI travel planner that uses web search, dataset and calculations",
+        tools=[search_web, calculate_expression, search_csv],
+        verbose=True,
+        allow_delegation=False,
+        max_iter=15,
+        llm=get_llm(max_tokens)
+    )
