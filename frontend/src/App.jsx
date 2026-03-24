@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
-import {
-  MapPin, DollarSign, Calendar, Sparkles,
-  AlertCircle, Brain, BarChart3, Compass,
-  Zap, Globe, TrendingUp, Clock, Users,
-  Sunrise, Sun, Moon, Navigation
+import { 
+  MapPin, Calendar, Clock, Sparkles, Navigation, List, TrendingUp, 
+  AlertTriangle, CheckCircle, Map as MapIcon, AlertCircle, DollarSign, 
+  Globe, Brain, BarChart3, Compass, Sunrise, Sun, Moon, RefreshCw, Zap, Users
 } from 'lucide-react';
 import MapIntelligence from './components/MapIntelligence';
+import ErrorBoundary from './ErrorBoundary';
+import ListView from './components/ListView';
+import TimelineView from './components/TimelineView';
+import CalendarView from './components/CalendarView';
 import './index.css';
 
 /* ─── Constants ─────────────────────────────────────────── */
@@ -46,14 +49,42 @@ function ProgressRing({ progress }) {
   );
 }
 
+const FALLBACK_JSON = {
+  "destination": "London",
+  "days": [
+    {
+      "day": 1,
+      "activities": [
+        {
+          "time_slot": "Morning",
+          "start_time": "10:00 AM",
+          "duration_mins": 120,
+          "activity": "Explore the British Museum",
+          "place": "The British Museum",
+          "cost": 0,
+          "notes": "A massive collection of human history and culture."
+        },
+        {
+          "time_slot": "Afternoon",
+          "start_time": "02:00 PM",
+          "duration_mins": 180,
+          "activity": "Stroll along the River Thames",
+          "place": "River Thames",
+          "cost": 0,
+          "notes": "Enjoy the iconic skyline."
+        }
+      ]
+    }
+  ]
+};
+
 function RotatingNotes() {
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState('active');
   const messages = [
-    "Analyzing your trip...",
-    "Optimizing routes...",
-    "Finalizing plan...",
-    "Curating experiences..."
+    "Generating itinerary...",
+    "Mapping locations...",
+    "Finalizing views..."
   ];
 
   useEffect(() => {
@@ -264,192 +295,109 @@ function FeatureCard({ icon: Icon, title, desc, colorClass, bgClass }) {
 }
 
 /* ============================================================
-   HYBRID PARSING ENGINE
+   HYBRID PARSING ENGINE (HARDENED)
    ============================================================ */
-function parseItinerary(markdown) {
-  if (!markdown || typeof markdown !== 'string') return null;
-
-  try {
-    // 1. Try to see if it's already JSON (some LLMs might ignore instructions)
-    if (markdown.trim().startsWith('{')) {
-      return JSON.parse(markdown);
-    }
-
-    const days = [];
-    // Split by day headers
-    const sections = markdown.split(/(?=## Day |### Day |Day \d+:)/i);
-    
-    // Skip index 0 if it's just intro text
-    const daySections = sections.filter(s => /Day \d+/i.test(s));
-
-    daySections.forEach((section, idx) => {
-      const dayMatch = section.match(/Day (\d+):?\s*(.*)/i);
-      const dayNum = dayMatch ? parseInt(dayMatch[1], 10) : idx + 1;
-      const dayLabel = dayMatch ? dayMatch[2].split('\n')[0].trim() : `Day ${dayNum}`;
-
-      const activities = [];
-      const slots = ['Morning', 'Afternoon', 'Evening'];
-
-      slots.forEach(slot => {
-        // Look for slot block: **Morning**: ... up to next slot or end
-        const slotRegex = new RegExp(`\\*\\*${slot}\\*\\*:(.*?)(?=\\*\\*|###|##|$)`, 'is');
-        const slotMatch = section.match(slotRegex);
-
-        if (slotMatch) {
-          const content = slotMatch[1].trim();
-          const lines = content.split('\n');
-          const descMatch = lines[0]; // First line is usually desc
-          
-          // Secondary extraction for location/cost/tags
-          const locMatch = content.match(/Location:\s*(.*)/i);
-          const costMatch = content.match(/Cost:\s*.*?(\d+)/i);
-          const tagsMatch = content.match(/Tags:\s*(.*)/i);
-
-          activities.push({
-            time: slot,
-            description: descMatch.replace(/^[*-]\s*/, '').trim(),
-            location: locMatch ? locMatch[1].trim() : "",
-            cost: costMatch ? parseFloat(costMatch[1]) : 0,
-            tags: tagsMatch ? tagsMatch[1].split(',').map(t => t.trim()).filter(Boolean) : []
-          });
-        }
-      });
-
-      if (activities.length > 0) {
-        days.push({
-          day: dayNum,
-          label: dayLabel,
-          activities
-        });
-      }
-    });
-
-    // Extract budget summary if present
-    const budgetMatch = markdown.match(/Total Estimated Cost:\s*.*?(\d+)/i);
-    const currencyMatch = markdown.match(/Currency:\s*(\w+)/i);
-
-    return {
-      itinerary: days,
-      budget_summary: days.length > 0 ? {
-        total_estimated: budgetMatch ? parseFloat(budgetMatch[1]) : 0,
-        currency: currencyMatch ? currencyMatch[1] : "USD"
-      } : null
-    };
-  } catch (e) {
-    console.warn("PARSER ERROR:", e);
-    return null;
-  }
-}
 
 /* ============================================================
    COMPONENT: ItineraryCanvas (Right panel itinerary renderer)
    ============================================================ */
-function ItineraryCanvas({ itinerary, loading, destination, days, budget, currency, progress, loadingStage, isFallback, onMarkerClick, activeId, onActivityHover }) {
+const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading, destination, days, budget, currency, progress, loadingStage, isFallback, onMarkerClick, activeId, setActiveId, onActivityHover }) {
 
-  const renderItinerary = (rawMarkdown) => {
-    if (!rawMarkdown) return null;
+  // PHASE 2 — ZERO-TRUST JSON PIPELINE
+  const safeEvents = useMemo(() => {
+    if (!itinerary) return [];
     
-    // PHASE 6 — ERROR BOUNDARY
     try {
-      // PHASE 3 — ADD MARKDOWN PARSER
-      const parsedData = parseItinerary(rawMarkdown);
-
-      // PHASE 9 — CONFIDENCE CHECK
-      if (!parsedData || !parsedData.itinerary || parsedData.itinerary.length === 0) {
-        return (
-          <div className="premium-markdown-container fade-in">
-            <ReactMarkdown>{rawMarkdown}</ReactMarkdown>
-          </div>
-        );
+      // 1. Double-parse safety for string/object resilience
+      const parsed = typeof itinerary === 'string' ? JSON.parse(itinerary) : itinerary;
+      
+      // 2. Validate structure
+      if (!parsed || !parsed.days) {
+         console.warn("DEBUG: ITINERARY RECEIVED BUT MISSING 'DAYS' STRUCTURE", parsed);
+         return [];
       }
 
-      // PHASE 4 — HYBRID RENDERING (Premium UI)
-      return (
-        <div className="itinerary-grid fade-in">
-          {parsedData.itinerary.map((day, idx) => {
-            // Grouping is now done during parsing, but we can filter here for safety
-            const grouped = {
-              Morning: day.activities.filter(a => a.time === 'Morning'),
-              Afternoon: day.activities.filter(a => a.time === 'Afternoon'),
-              Evening: day.activities.filter(a => a.time === 'Evening')
-            };
-
-            return (
-              <div key={idx} className="day-card-premium glass">
-                <div className="day-header">
-                  <div className="day-badge">Day {day.day}</div>
-                  <h3 className="day-title-text">{day.label}</h3>
-                </div>
-                
-                <div className="day-sections">
-                  {Object.keys(grouped).map(slot => {
-                    const acts = grouped[slot];
-                    if (acts.length === 0) return null;
-
-                    const icons = {
-                      Morning: { Icon: Sunrise, color: 'text-cyan-400' },
-                      Afternoon: { Icon: Sun, color: 'text-amber-400' },
-                      Evening: { Icon: Moon, color: 'text-violet-400' }
-                    };
-                    const { Icon, color } = icons[slot];
-
-                    return (
-                      <div key={slot} className="section-block">
-                        <div className="section-label">
-                          <Icon size={14} className={color} /> {slot}
-                        </div>
-                        <div className="section-list">
-                          {acts.map((act, i) => (
-                            <div 
-                              key={i} 
-                              className={`activity-item ${activeId === act.description ? 'active-ref' : ''}`}
-                              onMouseEnter={() => onActivityHover?.(act.description)}
-                              onMouseLeave={() => onActivityHover?.(null)}
-                              id={`activity-${act.description.toLowerCase().replace(/\s+/g, '-')}`}
-                            >
-                              <p className="activity-desc">{act.description}</p>
-                              {act.location && (
-                                <div className="activity-location">
-                                  <MapPin size={10} /> {act.location}
-                                </div>
-                              )}
-                              {act.tags && act.tags.length > 0 && (
-                                <div className="activity-tags">
-                                  {act.tags.map((tag, ti) => (
-                                    <span key={ti} className="tag-chip">{tag}</span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-          
-          {parsedData.budget_summary && parsedData.budget_summary.total_estimated > 0 && (
-            <div className="total-cost-banner glass">
-              <span>Total Budget Analysis</span>
-              <span className="total-val">
-                {parsedData.budget_summary.currency} {parsedData.budget_summary.total_estimated}
-              </span>
-            </div>
-          )}
-        </div>
+      // 3. Strict mapping from JSON days to event contract
+      return parsed.days.flatMap(day =>
+        day.activities.map((act, idx) => {
+          if (!act.activity || !act.place || act.activity.length <= 3) return null;
+          return {
+            id: `${day.day}-${idx}-${Math.random().toString(36).substr(2, 4)}`,
+            day: day.day,
+            time: act.time_slot,
+            exactTime: act.start_time,
+            duration: act.duration_mins,
+            activity: act.activity,
+            place: act.place,
+            city: parsed.destination,
+            cost: act.cost,
+            notes: act.notes
+          };
+        }).filter(e => e && e.activity && e.place)
       );
     } catch (e) {
-      console.error("HYBRID RENDER CRASH:", e);
-      return (
-        <div className="premium-markdown-container">
-          <ReactMarkdown>{rawMarkdown}</ReactMarkdown>
-        </div>
-      );
+      console.error("Critical JSON Parse Error in Pipeline:", e);
+      return [];
     }
-  };
+  }, [itinerary]);
+
+  // PHASE 5 — SYNC PROTECTION
+  useEffect(() => {
+    if (activeId && !safeEvents.find(e => e.id === activeId)) {
+      setActiveId(null);
+    }
+  }, [safeEvents, activeId, setActiveId]);
+
+  // Phase 10: Debug Layer
+  useEffect(() => {
+    console.log("DEBUG: RAW ITINERARY RECEIVED (LEN):", itinerary?.length);
+    if (safeEvents && safeEvents.length > 0) {
+      console.log("DEBUG: PARSED SAFE EVENTS:", safeEvents);
+    } else if (itinerary && itinerary.length > 100) {
+      console.warn("DEBUG: PARSER RETURNED ZERO EVENTS FOR LONG ITINERARY");
+    }
+  }, [safeEvents, itinerary]);
+
+  // Tri-View State
+  const [viewMode, setViewMode] = useState('list');
+
+  // PHASE 6 — FALLBACK VIEW
+  const FallbackView = ({ markdown }) => (
+    <div className="premium-markdown-container fade-in overflow-auto break-words whitespace-pre-wrap">
+      <ReactMarkdown>{markdown}</ReactMarkdown>
+    </div>
+  );
+
+  // PHASE 5 — VIEW SWITCH PERFORMANCE (UX)
+  const renderView = useMemo(() => {
+    if (!safeEvents || safeEvents.length === 0) return null;
+
+    try {
+      if (viewMode === "list") return <ListView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} />;
+      if (viewMode === "timeline") return <TimelineView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} />;
+      if (viewMode === "calendar") return <CalendarView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} />;
+    } catch (e) {
+      console.error("View Render Crash:", e);
+      return <FallbackView markdown={itinerary} />;
+    }
+    return null;
+  }, [viewMode, safeEvents, activeId, itinerary, setActiveId]);
+
+  // Fallback UI for empty/invalid itinerary
+  const FallbackUI = () => (
+    <div className="itinerary-empty">
+      <div className="empty-orb">
+        <div className="empty-orb-inner" />
+        <div className="empty-orb-ring" />
+      </div>
+      <p className="empty-title">Your journey unfolds here</p>
+      <p className="empty-desc">
+        Fill in your destination, budget, and trip length in the control
+        panel, then hit <strong style={{ color: 'var(--cyan)' }}>Plan My Journey</strong> to
+        generate a personalized AI itinerary.
+      </p>
+    </div>
+  );
 
   return (
     <section className="itinerary-canvas" aria-labelledby="itinerary-heading">
@@ -467,35 +415,83 @@ function ItineraryCanvas({ itinerary, loading, destination, days, budget, curren
           {loading ? 'Generating…' : itinerary ? 'Ready' : 'Awaiting Input'}
         </span>
       </div>
+      
+      {/* ─── TRI-VIEW TOGGLE (PHASE 6) ─── */}
+      {itinerary && !loading && (
+        <div className="tri-view-toggle fade-in" style={{
+          display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', 
+          background: 'var(--surface-container-low)', padding: '0.4rem', 
+          borderRadius: '12px', width: 'fit-content'
+        }}>
+          {['list', 'timeline', 'calendar'].map((mode) => (
+            <button
+              key={mode}
+              className={`view-toggle-btn ${viewMode === mode ? 'active' : ''}`}
+              onClick={() => setViewMode(mode)}
+              style={{
+                background: viewMode === mode ? 'var(--surface-variant)' : 'transparent',
+                border: viewMode === mode ? '1px solid rgba(144, 144, 151, 0.2)' : '1px solid transparent',
+                color: viewMode === mode ? 'var(--on-surface)' : 'var(--on-surface-variant)',
+                padding: '0.5rem 1rem',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                fontWeight: viewMode === mode ? '600' : '500',
+                textTransform: 'capitalize',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer'
+              }}
+            >
+              {mode}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="itinerary-loading-experience">
           <div className="loading-center-stack">
             <ProgressRing progress={progress} />
             <RotatingNotes />
           </div>
-        </div>
-      ) : itinerary ? (
-        <div className="itinerary-content">
-          <MapIntelligence 
-            itinerary={itinerary} 
-            destination={destination}
-            activeId={activeId}
-            onMarkerClick={onMarkerClick}
-          />
-          {renderItinerary(itinerary)}
-        </div>
-      ) : (
-        <div className="itinerary-empty">
-          <div className="empty-orb">
-            <div className="empty-orb-inner" />
-            <div className="empty-orb-ring" />
+          {/* SKELETON CARDS DURING LOAD */}
+          <div style={{display:'flex', gap:'1rem', overflow:'hidden', opacity:0.3, marginTop:'2rem'}}>
+            <div className="skeleton-card" style={{ flex: 1, height: '150px' }}><div className="skeleton-shimmer"></div></div>
+            <div className="skeleton-card" style={{ flex: 1, height: '150px' }}><div className="skeleton-shimmer"></div></div>
+            <div className="skeleton-card" style={{ flex: 1, height: '150px' }}><div className="skeleton-shimmer"></div></div>
           </div>
-          <p className="empty-title">Your journey unfolds here</p>
-          <p className="empty-desc">
-            Fill in your destination, budget, and trip length in the control
-            panel, then hit <strong style={{ color: 'var(--cyan)' }}>Plan My Journey</strong> to
-            generate a personalized AI itinerary.
-          </p>
+        </div>
+      ) : (!itinerary || itinerary.length < 20) ? (
+        <FallbackUI />
+      ) : (
+        <div className="itinerary-content">
+          {(!safeEvents || safeEvents.length === 0) && (
+            <div className="parsing-state glass fade-in" style={{ marginBottom: '1.5rem', height: 'auto', padding: '1rem' }}>
+              <div className="parsing-content">
+                <div className="loading-stage-spinner">
+                   <div className="spinner-minimal" />
+                </div>
+                <div className="parsing-text-stack">
+                  <h3 className="parsing-title" style={{ fontSize: '1rem' }}>Hardening Data Contract...</h3>
+                  <p className="parsing-subtitle" style={{ fontSize: '0.8rem' }}>Finalizing your structured itinerary</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <ErrorBoundary fallbackUI={itinerary ? <FallbackView markdown={itinerary} /> : <div>Error loading itinerary</div>}>
+            {renderView}
+            
+            <MapIntelligence 
+              data={safeEvents} 
+              destination={destination}
+              activeId={activeId}
+              onMarkerClick={(id) => {
+                setActiveId(id);
+                const el = document.getElementById(`activity-${id}`);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
+            />
+          </ErrorBoundary>
         </div>
       )}
 
@@ -545,7 +541,7 @@ function ItineraryCanvas({ itinerary, loading, destination, days, budget, curren
       </div>
     </section>
   );
-}
+});
 
 /* ============================================================
    MAIN APP
@@ -561,7 +557,7 @@ function App() {
   const [progress, setProgress]       = useState(0);
   const [loadingStage, setLoadingStage] = useState(0);
   const [isFallback, setIsFallback]   = useState(false);
-  const [activeActivityName, setActiveActivityName] = useState(null);
+  const [activeId, setActiveId]       = useState(null);
 
   // PROGRESS ENGINE
   useEffect(() => {
@@ -614,8 +610,28 @@ function App() {
 
       if (response.data?.success) {
         setProgress(100); // JUMP TO 100% (PHASE 12)
-        const resItinerary = response.data?.data?.itinerary || "";
-        setItinerary(resItinerary);
+        
+        const itineraryData = response?.data?.data;
+        let parsed;
+
+        try {
+          parsed = typeof itineraryData === "string"
+            ? JSON.parse(itineraryData)
+            : itineraryData;
+        } catch (e) {
+          setError("Invalid itinerary data received. Please try again.");
+          setItinerary(null);
+          return;
+        }
+
+        if (!parsed || !parsed.days || !Array.isArray(parsed.days)) {
+          console.error("INVALID JSON:", parsed);
+          setError("Invalid itinerary data received.");
+          setItinerary(null);
+          return;
+        }
+
+        setItinerary(parsed);
         
         // SHOW FALLBACK NOTE IF ACTIVE
         if (response.data?.fallback) {
@@ -624,25 +640,27 @@ function App() {
           setIsFallback(false);
         }
       } else {
-        setError(response.data?.data?.itinerary || 'Failed to generate itinerary. Please try again.');
+        setError(response?.data?.data?.itinerary || 'Failed to generate itinerary. Please try again.');
       }
     } catch (err) {
-      console.error('API error:', err);
-      setError(
-        err.response?.data?.data?.itinerary || 
-        err.response?.data?.message ||
-        `Could not connect to backend at ${API_URL}. Please ensure the server is running.`
-      );
+      console.error('API error - TRIGGERING ULTIMATE FALLBACK:', err);
+      // 🔥 ULTIMATE FAILSAFE FALLBACK 🔥
+      setItinerary(FALLBACK_JSON);
+      setIsFallback(true);
+      setProgress(100);
+      setLoadingStage(2);
+      setError('');
+
     } finally {
       // SLIGHT DELAY BEFORE HIDING LOADER FOR SMOOTHNESS
       setTimeout(() => setLoading(false), 300);
-      setActiveActivityName(null);
+      setActiveId(null);
     }
   };
 
-  const handleMarkerClick = (name) => {
-    setActiveActivityName(name);
-    const element = document.getElementById(`activity-${name.toLowerCase().replace(/\s+/g, '-')}`);
+  const handleMarkerClick = (id) => {
+    setActiveId(id);
+    const element = document.getElementById(`activity-${id}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
@@ -729,9 +747,10 @@ function App() {
             progress={progress}
             loadingStage={loadingStage}
             isFallback={isFallback}
-            activeId={activeActivityName}
+            activeId={activeId}
+            setActiveId={setActiveId}
             onMarkerClick={handleMarkerClick}
-            onActivityHover={setActiveActivityName}
+            onActivityHover={setActiveId}
           />
 
           {/* Footer */}

@@ -2,14 +2,16 @@ from dotenv import load_dotenv
 import os
 import time
 import logging
+import requests
+from openai import OpenAI
 
 # PHASE 1 — ENVIRONMENT CONFIGURATION
 load_dotenv()
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field, model_validator
+from typing import Optional, Any, List
 
 app = FastAPI(title="Routewise API", description="Backend for Routewise - AI Travel Planning Agent")
 
@@ -27,13 +29,65 @@ class TripRequest(BaseModel):
     budget: float
     days: int
 
-# PHASE 1 — FIX PYDANTIC MODELS
-class ItineraryData(BaseModel):
-    itinerary: str
+# PHASE 6 — REFINED DATA CONTRACT
+class Activity(BaseModel):
+    time_slot: str = Field(default="Morning")
+    start_time: str = Field(default="09:00")
+    duration_mins: int = Field(default=60)
+    activity: str = Field(default="Walking tour")
+    place: str = Field(default="City Center")
+    city: str = Field(default="")
+    cost: float = Field(default=0.0)
+    notes: str = Field(default="Enjoy the visit.")
+
+    @model_validator(mode='before')
+    @classmethod
+    def robust_mapping(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            # Aliases for common AI drift
+            if 'time' in data and 'time_slot' not in data:
+                data['time_slot'] = data.pop('time')
+            if 'duration' in data and 'duration_mins' not in data:
+                dur = data.pop('duration')
+                if isinstance(dur, str):
+                    data['duration_mins'] = int(''.join(filter(str.isdigit, dur)) or 60)
+                else:
+                    data['duration_mins'] = int(dur)
+            
+            # Ensure start_time exists
+            if 'start_time' not in data and 'time' in data:
+                data['start_time'] = data['time'] # fallback if time was used for both
+            
+            # Final safety check for missing fields
+            for field in ['time_slot', 'start_time', 'activity', 'place', 'city', 'notes']:
+                if field not in data: data[field] = ""
+            if 'duration_mins' not in data: data['duration_mins'] = 60
+            if 'cost' not in data: data['cost'] = 0.0
+
+        return data
+
+class Day(BaseModel):
+    day: int = Field(default=1)
+    theme: str = Field(default="Exploration")
+    activities: List[Activity] = Field(default_factory=list)
+
+class BudgetBreakdown(BaseModel):
+    food: float
+    transport: float
+    activities: float
+    total: float
+
+class ItineraryJSON(BaseModel):
+    destination: str
+    total_days: int
+    summary: str
+    days: list[Day]
+    budget_breakdown: BudgetBreakdown
 
 class TripResponse(BaseModel):
     success: bool
-    data: ItineraryData
+    data: ItineraryJSON
+    fallback: bool = False
 
 def clean_output(text: str) -> str:
     """
@@ -77,15 +131,28 @@ logger = logging.getLogger(__name__)
 
 # PHASE 9 & 15 — GEMINI CLIENT MIGRATION (google-genai)
 gemini_api_key = os.getenv("GEMINI_API_KEY")
-client = None
+gemini_client = None
 if gemini_api_key and gemini_api_key != "your_key_here":
     try:
-        client = genai.Client(api_key=gemini_api_key)
+        gemini_client = genai.Client(api_key=gemini_api_key)
         logger.info("Google GenAI Client Initialized")
     except Exception as e:
         logger.error(f"Failed to initialize GenAI Client: {e}")
 else:
-    logger.warning("GEMINI_API_KEY not found or default. AI Features disabled.")
+    logger.warning("GEMINI_API_KEY not found or default. Gemini Features disabled.")
+
+# PHASE 2 — OPENROUTER CLIENT
+openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+openrouter_client = None
+if openrouter_api_key and openrouter_api_key != "your_key_here":
+    try:
+        openrouter_client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=openrouter_api_key,
+        )
+        logger.info("OpenRouter Client Initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize OpenRouter Client: {e}")
 
 # (Keep DESTINATIONS and generate_smart_fallback as they are)
 
@@ -237,88 +304,143 @@ def generate_smart_fallback(destination: str, days: int, budget: float) -> str:
 @app.post("/plan-trip", response_model=TripResponse)
 async def plan_trip(request: TripRequest):
     """
-    PHASE 11 — PRODUCTION OPTIMIZATION (FINAL)
-    Limit-aware, fault-tolerant AI generation pipeline.
+    PHASE 6 — ZERO-TRUST JSON ENGINE
+    Enforces structured output with recursive quality validation.
     """
     start_time = time.time()
-    itinerary = None
+    itinerary_json = None
     is_fallback = False
     
-    # 1. VALIDATE CONFIG
-    if not client:
-        logger.error("Gemini Client not initialized. Triggering Smart Fallback.")
-        return {
-            "success": True, 
-            "data": {"itinerary": generate_smart_fallback(request.destination, request.days, request.budget)},
-            "fallback": True
-        }
-
-    # 2. ENHANCED PROMPT
+    # SYSTEM PROMPT (ULTR-STRICT)
     prompt = f"""
-Generate a dense, information-rich, premium travel itinerary for {request.destination} 
-({request.days} days, ${request.budget} budget, balanced style).
+Generate a premium, structured travel itinerary for {request.destination} 
+({request.days} days, ${request.budget} budget).
 
 STRICT RULES:
-- Output clean MARKDOWN only. NO JSON. NO system logs.
-- Be SPECIFIC with places/prices. NO generic filler.
-- Format: # Travel Itinerary... ## Overview... ## Day X... ## Highlights... ## Food Guide... ## Budget Summary... ## Tips.
+- RETURN ONLY VALID JSON.
+- DO NOT include markdown.
+- DO NOT wrap in ```json.
+- DO NOT add explanation text.
+- Do NOT use generic phrases like: "Explore city", "Visit local attractions". 
+- ONLY use REAL places (e.g., Eiffel Tower, Brandenburg Gate).
+- Each day MUST include 4 slots: Morning, Afternoon, Evening, Night.
+- Each activity MUST have: place, time, duration, cost.
+- Structure must match:
+{{
+  "destination": "{request.destination}",
+  "total_days": {request.days},
+  "summary": "...",
+  "days": [ {{ "day": 1, "theme": "...", "activities": [...] }} ],
+  "budget_breakdown": {{ "food": 0, "transport": 0, "activities": 0, "total": 0 }}
+}}
 """
 
-    # 3. GENERATION PIPELINE WITH AUTO-FAILOVER (PHASE 15)
-    models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash-001"]
-    
-    for model_id in models_to_try:
-        if itinerary: break # Success
-        
+    def is_valid(data, requested_days):
+        if not data:
+            return False
+
+        if "days" not in data:
+            return False
+
+        if len(data["days"]) != requested_days:
+            return False
+
+        for day in data["days"]:
+            if "activities" not in day:
+                return False
+
+            if len(day["activities"]) < 4:
+                return False  # morning, afternoon, evening, night
+
+            for act in day["activities"]:
+                required = ["activity", "place", "time_slot", "start_time"]
+                if not all(k in act for k in required):
+                    return False
+
+                if act["place"].lower() in ["city center", "explore"]:
+                    return False
+
+        return True
+
+    def extract_json(content):
+        import json
+        import re
         try:
-            logger.info(f"Attempting generation with {model_id}")
+            return json.loads(content)
+        except:
+            match = re.search(r"\{.*?\}", content, re.DOTALL)
+            if match:
+                try:
+                    return json.loads(match.group())
+                except:
+                    return None
+        return None
+
+    MAX_RETRIES = 3
+    used_model = "NONE"
+    
+    # 1. PRIMARY ENGINE (GEMINI/OPENROUTER)
+    for attempt in range(MAX_RETRIES):
+        try:
+            logger.info(f"AI Generation Attempt {attempt + 1}/{MAX_RETRIES}...")
             
-            # PHASE 15 — NEW SDK CALL
-            response = client.models.generate_content(
-                model=model_id,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    temperature=0.7,
-                    max_output_tokens=1800,
+            # Prefer OpenRouter gpt-4o-mini for structure reliability
+            if openrouter_client:
+                used_model = "openai/gpt-4o-mini"
+                response = openrouter_client.chat.completions.create(
+                    model=used_model,
+                    messages=[{"role": "user", "content": prompt}],
+                    response_format={"type": "json_object"},
+                    extra_headers={"HTTP-Referer": "http://localhost:5174", "X-Title": "Routewise"}
                 )
-            )
-            
-            # EXTRACT TEXT
-            raw_text = response.text
-            
-            if raw_text:
-                # PHASE 8 — OUTPUT CLEANING
-                for prefix in ["Thought:", "Action:", "Observation:", "Final Answer:", "Thought [Internal]:"]:
-                    if prefix in raw_text:
-                        raw_text = raw_text.split(prefix)[-1]
                 
-                # PHASE 15 — HARD VALIDATION
-                if isinstance(raw_text, str) and len(raw_text.strip()) > 50:
-                    itinerary = raw_text.strip()
-                    logger.info(f"Successfully generated with {model_id}")
+                raw_text = response.choices[0].message.content
+                logger.info(f"RAW AI RESPONSE: {raw_text}")
+                
+                parsed = extract_json(raw_text)
+                logger.info(f"PARSED JSON: {parsed}")
+                
+                if is_valid(parsed, request.days):
+                    itinerary_json = parsed
                     break
                 else:
-                    logger.warning(f"Invalid response length (<50) from {model_id}")
+                    logger.warning(f"Quality validation failed on attempt {attempt + 1}")
             
         except Exception as e:
-            logger.error(f"Generation error with {model_id}: {str(e)}")
-            continue
+            logger.error(f"Attempt {attempt + 1} failed: {e}")
+            time.sleep(1)
 
-    # 4. FINAL FALLBACK TRIGGER
-    if not itinerary:
-        logger.warning("All AI models failed. Triggering Smart Fallback Engine.")
-        itinerary = generate_smart_fallback(request.destination, request.days, request.budget)
+    # 2. FINAL FALLBACK (DETERMINISTIC)
+    if not itinerary_json:
+        logger.warning("Generative AI failed quality gates. Triggering Hard Fallback.")
+        # Transform the old fallback into the new JSON structure
         is_fallback = True
+        used_model = "deterministic_fallback"
+        itinerary_json = {
+            "destination": request.destination,
+            "total_days": request.days,
+            "summary": "Curated selection of city highlights.",
+            "days": [
+                {
+                    "day": d + 1,
+                    "theme": "Local Highlights",
+                    "activities": [
+                        {"time_slot": "Morning", "start_time": "09:00", "duration_mins": 120, "activity": "Breakfast at local gem", "place": f"Historic {request.destination} Square", "city": request.destination, "cost": 20.0, "notes": "Great coffee."},
+                        {"time_slot": "Afternoon", "start_time": "13:00", "duration_mins": 180, "activity": "Visit iconic landmark", "place": f"Main {request.destination} Museum", "city": request.destination, "cost": 30.0, "notes": "Must see."},
+                        {"time_slot": "Evening", "start_time": "19:00", "duration_mins": 120, "activity": "Sunset views & Dining", "place": f"{request.destination} Riverfront", "city": request.destination, "cost": 50.0, "notes": "Beautiful vibes."},
+                        {"time_slot": "Night", "start_time": "22:00", "duration_mins": 60, "activity": "Late night stroll", "place": "Old Town", "city": request.destination, "cost": 0.0, "notes": "Peaceful."}
+                    ]
+                } for d in range(request.days)
+            ],
+            "budget_breakdown": {"food": request.budget*0.3, "transport": request.budget*0.1, "activities": request.budget*0.6, "total": request.budget}
+        }
 
-    # 5. LOGGING & TELEMETRY
     duration = time.time() - start_time
-    logger.info(f"Request complete. Duration: {duration:.2f}s | Fallback: {is_fallback}")
+    logger.info(f"Request complete. Duration: {duration:.2f}s | Model: {used_model} | Fallback: {is_fallback}")
 
     return {
         "success": True,
-        "data": {
-            "itinerary": itinerary
-        },
+        "data": itinerary_json,
         "fallback": is_fallback
     }
 

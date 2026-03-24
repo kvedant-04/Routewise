@@ -31,3 +31,13 @@
 **Status**: ✅ Complete
 **Objective**: Build React frontend, connect to FastAPI backend, display the generated itinerary and reasoning.
 **Requirements**: REQ-01, REQ-02
+34: 
+35: ### Phase 5: Production-Grade System Rebuild
+**Status**: ✅ Complete
+**Objective**: Hardening the data pipeline, parallelizing geocoding, and syncing the tri-view UI (List, Timeline, Calendar) with a single source of truth.
+**Requirements**: REQ-12, REQ-13, REQ-14
+
+### Phase 6: AI Engine Upgrade & UI Gloss (RECOVERY)
+**Status**: 🏗 In Progress
+**Objective**: Transitioning to a zero-trust JSON pipeline, upgrading AI models (GPT-4o-Mini), and applying the unified Stitch AI Design System.
+**Requirements**: REQ-15, REQ-16, REQ-17, REQ-18
