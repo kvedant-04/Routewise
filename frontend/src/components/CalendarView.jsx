@@ -1,42 +1,65 @@
 import React from 'react';
+import { Clock, MapPin, DollarSign } from 'lucide-react';
 
 const CalendarView = React.memo(({ data, activeId, onActivityHover }) => {
   if (!data || data.length === 0) {
-    return <div className="no-events-fallback glass">No events available</div>;
+    return (
+      <div className="cv-empty">
+        <span>No calendar events to display.</span>
+      </div>
+    );
   }
-  
-  const days = [...new Set(data.map(e => e.day))];
+
+  const days = [...new Set(data.map(e => e.day))].sort((a, b) => a - b);
 
   return (
-    <div className="calendar-grid-view fade-in">
-      <div className="calendar-horizontal-scroll">
+    <div className="cv-root">
+      <div className="cv-scroll">
         {days.map(dayNum => {
           const dayEvents = data.filter(e => e.day === dayNum);
           return (
-            <div key={dayNum} className="calendar-col">
-              <div className="cal-col-header">Day {dayNum}</div>
-              <div className="cal-col-body">
-                {dayEvents.map((evt) => {
-                  let glowClass = "cal-glow-amber";
-                  if (evt.time === "Afternoon") glowClass = "cal-glow-blue";
-                  if (evt.time === "Evening" || evt.time === "Night") glowClass = "cal-glow-purple";
-
-                  return (
-                    <div 
-                      key={evt.id} 
-                      className={`cal-event-card ${glowClass} ${activeId === evt.id ? 'active-cal' : ''}`}
-                      onMouseEnter={() => onActivityHover?.(evt.id)}
-                      onMouseLeave={() => onActivityHover?.(null)}
-                      id={`activity-${evt.id}`}
-                    >
-                      <div className="cal-time">{evt.exactTime}</div>
-                      <div className="cal-desc">{evt.activity}</div>
-                      <div className="cal-place text-xs text-cyan-300 mt-1 flex items-center gap-1 opacity-80">
-                        <span style={{ fontSize: '10px' }}>📍</span> {evt.place}
+            <div key={dayNum} className="cv-col">
+              <div className="cv-col-header">
+                <span className="cv-day-label">Day</span>
+                <span className="cv-day-num">{dayNum}</span>
+              </div>
+              <div className="cv-col-body">
+                {dayEvents.map((evt) => (
+                  <div
+                    key={evt.id}
+                    id={`activity-${evt.id}`}
+                    className={`cv-card ${activeId === evt.id ? 'cv-card--active' : ''}`}
+                    onMouseEnter={() => onActivityHover?.(evt.id)}
+                    onMouseLeave={() => onActivityHover?.(null)}
+                  >
+                    {/* Top: time + cost */}
+                    <div className="cv-card-top">
+                      <div className="cv-time">
+                        <Clock size={10} />
+                        <span>{evt.time}</span>
                       </div>
+                      {evt.costLabel && (
+                        <span className="cv-cost">{evt.costLabel}</span>
+                      )}
                     </div>
-                  );
-                })}
+
+                    {/* Activity name */}
+                    <h5 className="cv-activity">{evt.activity}</h5>
+
+                    {/* Place */}
+                    <div className="cv-place">
+                      <MapPin size={10} />
+                      <span>{evt.place}</span>
+                    </div>
+
+                    {/* Notes — truncated */}
+                    {evt.notes && (
+                      <p className="cv-notes">
+                        {evt.notes.length > 50 ? evt.notes.slice(0, 50) + '…' : evt.notes}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           );

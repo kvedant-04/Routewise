@@ -78,7 +78,7 @@ const FALLBACK_JSON = {
   ]
 };
 
-function RotatingNotes() {
+function RotatingNotes({ activeMessage }) {
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState('active');
   const messages = [
@@ -105,7 +105,7 @@ function RotatingNotes() {
           key={i} 
           className={`rotating-note ${i === index ? fade : ''}`}
         >
-          {msg}
+          {activeMessage || msg}
         </div>
       ))}
     </div>
@@ -135,7 +135,7 @@ function Header() {
 /* ============================================================
    COMPONENT: ControlPanel (Left sidebar)
    ============================================================ */
-function ControlPanel({ destination, setDestination, budget, setBudget, days, setDays, currency, setCurrency, loading, onSubmit, error }) {
+function ControlPanel({ destination, setDestination, budget, setBudget, days, setDays, currency, setCurrency, loading, loadingStage, onSubmit, error }) {
 
   const currencies = [
     { code: 'USD', symbol: '$', label: 'US Dollar' },
@@ -245,7 +245,7 @@ function ControlPanel({ destination, setDestination, budget, setBudget, days, se
               <div className="btn-loading-content">
                 <div className="spinner-minimal" />
                 <span>
-                  {["Thinking...", "Mapping...", "Polishing..."][loadingStage] || "Planning..."}
+                  {loadingStage || "Planning..."}
                 </span>
               </div>
             ) : (
@@ -299,44 +299,57 @@ function FeatureCard({ icon: Icon, title, desc, colorClass, bgClass }) {
    ============================================================ */
 
 /* ============================================================
+   PHASE 1 — FORMAT HELPERS (single source of truth)
+   ============================================================ */
+function formatDuration(d) {
+  const n = parseInt(d, 10);
+  return isNaN(n) ? '60 mins' : `${n} mins`;
+}
+function formatCost(c) {
+  const n = parseFloat(c);
+  return isNaN(n) || n === 0 ? null : `$${n.toFixed(0)}`;
+}
+function formatTime(t) {
+  if (!t) return '09:00 AM';
+  const s = String(t).trim();
+  return s || '09:00 AM';
+}
+
+/* ============================================================
    COMPONENT: ItineraryCanvas (Right panel itinerary renderer)
    ============================================================ */
 const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading, destination, days, budget, currency, progress, loadingStage, isFallback, onMarkerClick, activeId, setActiveId, onActivityHover }) {
 
-  // PHASE 2 — ZERO-TRUST JSON PIPELINE
+  // ZERO-TRUST NORMALIZATION — uses format helpers for clean output
   const safeEvents = useMemo(() => {
     if (!itinerary) return [];
-    
     try {
-      // 1. Double-parse safety for string/object resilience
       const parsed = typeof itinerary === 'string' ? JSON.parse(itinerary) : itinerary;
-      
-      // 2. Validate structure
-      if (!parsed || !parsed.days) {
-         console.warn("DEBUG: ITINERARY RECEIVED BUT MISSING 'DAYS' STRUCTURE", parsed);
-         return [];
-      }
+      if (!parsed || !parsed.days || !Array.isArray(parsed.days)) return [];
 
-      // 3. Strict mapping from JSON days to event contract
-      return parsed.days.flatMap(day =>
-        day.activities.map((act, idx) => {
-          if (!act.activity || !act.place || act.activity.length <= 3) return null;
+      return parsed.days.flatMap((day, dayIdx) => {
+        const activities = Array.isArray(day.activities) ? day.activities : [];
+        return activities.map((act, actIdx) => {
+          const durNum = parseInt(act.duration_mins || act.duration || 60, 10);
           return {
-            id: `${day.day}-${idx}-${Math.random().toString(36).substr(2, 4)}`,
-            day: day.day,
-            time: act.time_slot,
-            exactTime: act.start_time,
-            duration: act.duration_mins,
-            activity: act.activity,
-            place: act.place,
-            city: parsed.destination,
-            cost: act.cost,
-            notes: act.notes
+            id: `${day.day || dayIdx + 1}-${actIdx}`,
+            day: day.day || dayIdx + 1,
+            time: formatTime(act.start_time || act.time_slot || act.time),
+            exactTime: formatTime(act.start_time || act.time_slot || act.time),
+            activity: act.activity || 'Explore area',
+            place: act.place || 'Local Landmark',
+            duration: formatDuration(isNaN(durNum) ? 60 : durNum),
+            duration_mins: isNaN(durNum) ? 60 : durNum,
+            cost: parseFloat(act.cost) || 0,
+            costLabel: formatCost(act.cost),
+            notes: act.notes || 'No additional details available.',
+            lat: act.lat || null,
+            lng: act.lng || null,
           };
-        }).filter(e => e && e.activity && e.place)
-      );
+        }).filter(e => e.activity && e.place);
+      });
     } catch (e) {
-      console.error("Critical JSON Parse Error in Pipeline:", e);
+      console.error('safeEvents parse error:', e);
       return [];
     }
   }, [itinerary]);
@@ -451,7 +464,7 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
         <div className="itinerary-loading-experience">
           <div className="loading-center-stack">
             <ProgressRing progress={progress} />
-            <RotatingNotes />
+            <RotatingNotes activeMessage={loadingStage} />
           </div>
           {/* SKELETON CARDS DURING LOAD */}
           <div style={{display:'flex', gap:'1rem', overflow:'hidden', opacity:0.3, marginTop:'2rem'}}>
@@ -464,34 +477,41 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
         <FallbackUI />
       ) : (
         <div className="itinerary-content">
-          {(!safeEvents || safeEvents.length === 0) && (
-            <div className="parsing-state glass fade-in" style={{ marginBottom: '1.5rem', height: 'auto', padding: '1rem' }}>
-              <div className="parsing-content">
-                <div className="loading-stage-spinner">
-                   <div className="spinner-minimal" />
-                </div>
+          {(!safeEvents || safeEvents.length === 0) ? (
+            <div className="parsing-state glass fade-in" style={{ marginBottom: '1.5rem', height: 'auto', padding: '2rem', textAlign: 'center' }}>
+              <div className="parsing-content" style={{ flexDirection: 'column', gap: '1rem' }}>
+                <AlertCircle size={32} color="var(--violet)" style={{ opacity: 0.6 }} />
                 <div className="parsing-text-stack">
-                  <h3 className="parsing-title" style={{ fontSize: '1rem' }}>Hardening Data Contract...</h3>
-                  <p className="parsing-subtitle" style={{ fontSize: '0.8rem' }}>Finalizing your structured itinerary</p>
+                  <h3 className="parsing-title" style={{ fontSize: '1.1rem' }}>Itinerary Generation Incomplete</h3>
+                  <p className="parsing-subtitle" style={{ fontSize: '0.9rem', maxWidth: '300px', margin: '0.5rem auto 0' }}>
+                    We received structural data but couldn't parse readable activities. Please try a more specific destination.
+                  </p>
                 </div>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="btn-primary" 
+                  style={{ width: 'auto', padding: '0.6rem 1.2rem', marginTop: '1rem', fontSize: '0.8rem' }}
+                >
+                  Reset & Retry
+                </button>
               </div>
             </div>
+          ) : (
+            <ErrorBoundary fallbackUI={itinerary ? <FallbackView markdown={itinerary} /> : <div>Error loading itinerary</div>}>
+              {renderView}
+              
+              <MapIntelligence 
+                data={safeEvents} 
+                destination={destination}
+                activeId={activeId}
+                onMarkerClick={(id) => {
+                  setActiveId(id);
+                  const el = document.getElementById(`activity-${id}`);
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }}
+              />
+            </ErrorBoundary>
           )}
-          
-          <ErrorBoundary fallbackUI={itinerary ? <FallbackView markdown={itinerary} /> : <div>Error loading itinerary</div>}>
-            {renderView}
-            
-            <MapIntelligence 
-              data={safeEvents} 
-              destination={destination}
-              activeId={activeId}
-              onMarkerClick={(id) => {
-                setActiveId(id);
-                const el = document.getElementById(`activity-${id}`);
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              }}
-            />
-          </ErrorBoundary>
         </div>
       )}
 
@@ -555,7 +575,7 @@ function App() {
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
   const [progress, setProgress]       = useState(0);
-  const [loadingStage, setLoadingStage] = useState(0);
+  const [loadingStage, setLoadingStage] = useState("");
   const [isFallback, setIsFallback]   = useState(false);
   const [activeId, setActiveId]       = useState(null);
 
@@ -588,14 +608,14 @@ function App() {
     setError('');
     setItinerary('');
     setProgress(0);
+    setLoadingStage("Initializing AI engine...");
 
     // 2-SECOND MINIMUM LOAD TIME (PHASE 12)
     const minDelay = new Promise(resolve => setTimeout(resolve, 2000));
 
     try {
-      console.log("SENDING REQUEST TO:", `${API_URL}/plan-trip`);
-      
-      // RUN API AND DELAY CONCURRENTLY
+        setLoadingStage("Analyzing destination data...");
+        // RUN API AND DELAY CONCURRENTLY
       const [response] = await Promise.all([
         axios.post(`${API_URL}/plan-trip`, {
           destination,
@@ -607,27 +627,32 @@ function App() {
       ]);
 
       console.log("API RESPONSE:", response.data);
+      setLoadingStage("Finalizing itinerary...");
 
       if (response.data?.success) {
-        setProgress(100); // JUMP TO 100% (PHASE 12)
+        setProgress(100);
         
-        const itineraryData = response?.data?.data;
+        const itineraryData = response.data.data;
         let parsed;
-
+        
         try {
-          parsed = typeof itineraryData === "string"
-            ? JSON.parse(itineraryData)
+          // SAFE PARSE
+          parsed = typeof itineraryData === "string" 
+            ? JSON.parse(itineraryData) 
             : itineraryData;
-        } catch (e) {
-          setError("Invalid itinerary data received. Please try again.");
+        } catch (err) {
+          console.error("JSON Parse Error:", err);
+          setError("Invalid itinerary data received.");
           setItinerary(null);
           return;
         }
 
+        // 🧩 PHASE 12: RIGID STRUCTURAL GUARD
         if (!parsed || !parsed.days || !Array.isArray(parsed.days)) {
-          console.error("INVALID JSON:", parsed);
-          setError("Invalid itinerary data received.");
+          console.error("STRUCTURAL ERROR: Missing 'days' field", parsed);
+          setError("Invalid itinerary data");
           setItinerary(null);
+          setLoading(false);
           return;
         }
 
@@ -685,6 +710,7 @@ function App() {
           days={days}                setDays={setDays}
           currency={currency}        setCurrency={setCurrency}
           loading={loading}
+          loadingStage={loadingStage}
           onSubmit={handlePlanTrip}
           error={error}
         />

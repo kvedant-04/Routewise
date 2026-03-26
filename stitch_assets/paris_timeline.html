@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Enchanted Voyage - Day 1: Paris</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-dim": "#7658f8",
+              "on-error": "#490013",
+              "primary-container": "#a391ff",
+              "tertiary-dim": "#ff6b95",
+              "secondary-fixed": "#7edeff",
+              "on-primary": "#2e0095",
+              "error-dim": "#d73357",
+              "surface-variant": "#22262f",
+              "tertiary-fixed": "#ff8faa",
+              "secondary": "#00d2ff",
+              "inverse-on-surface": "#52555c",
+              "on-tertiary-container": "#100003",
+              "on-primary-fixed": "#000000",
+              "primary-fixed-dim": "#9680ff",
+              "surface-container": "#161a21",
+              "secondary-dim": "#00c3ed",
+              "secondary-container": "#00677f",
+              "tertiary": "#ff6b95",
+              "surface-container-high": "#1c2028",
+              "on-tertiary": "#48001c",
+              "on-primary-fixed-variant": "#2c008f",
+              "surface": "#0b0e14",
+              "surface-bright": "#282c36",
+              "primary-fixed": "#a391ff",
+              "on-background": "#ecedf6",
+              "on-secondary-fixed": "#003a48",
+              "on-error-container": "#ffb2b9",
+              "on-secondary": "#004253",
+              "outline": "#73757d",
+              "surface-container-low": "#10131a",
+              "surface-tint": "#b1a1ff",
+              "error-container": "#a70138",
+              "on-secondary-fixed-variant": "#00586d",
+              "on-secondary-container": "#eefaff",
+              "surface-container-lowest": "#000000",
+              "tertiary-fixed-dim": "#ff769b",
+              "on-surface": "#ecedf6",
+              "surface-dim": "#0b0e14",
+              "surface-container-highest": "#22262f",
+              "inverse-primary": "#603ee1",
+              "on-surface-variant": "#a9abb3",
+              "background": "#0b0e14",
+              "outline-variant": "#45484f",
+              "on-primary-container": "#230076",
+              "secondary-fixed-dim": "#30d4ff",
+              "inverse-surface": "#f9f9ff",
+              "on-tertiary-fixed-variant": "#770033",
+              "primary": "#b1a1ff",
+              "error": "#ff6e84",
+              "tertiary-container": "#fe3c80",
+              "on-tertiary-fixed": "#380015"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(34, 38, 47, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .timeline-gradient {
+            background: linear-gradient(180deg, rgba(177, 161, 255, 0.2) 0%, rgba(0, 210, 255, 0.2) 50%, rgba(255, 107, 149, 0.2) 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container/30">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-[#0b0e14]/60 backdrop-blur-xl bg-gradient-to-b from-[#10131a] to-transparent shadow-[0_40px_40px_0_rgba(118,88,248,0.08)]">
+<div class="flex items-center justify-between px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#b1a1ff] hover:opacity-80 transition-opacity active:scale-95 duration-200">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold tracking-tight text-lg text-[#b1a1ff]">Day 1: Paris</h1>
+</div>
+<div class="text-[#b1a1ff] font-bold text-xl tracking-tighter">Enchanted Voyage</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-5xl mx-auto">
+<!-- View Toggle Shell -->
+<div class="flex justify-center mb-12">
+<div class="bg-surface-container-high p-1.5 rounded-full flex items-center gap-1 shadow-inner shadow-black/20">
+<button class="px-6 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors">List</button>
+<button class="px-6 py-2 rounded-full text-sm font-semibold text-on-surface-variant hover:text-on-surface transition-colors">Calendar</button>
+<button class="px-6 py-2 rounded-full text-sm font-semibold bg-primary text-on-primary-container shadow-lg shadow-primary-dim/20 transition-transform active:scale-95">Timeline</button>
+</div>
+</div>
+<!-- Timeline Section -->
+<div class="relative grid grid-cols-[80px_1fr] gap-8">
+<!-- Timeline Path Indicator -->
+<div class="absolute left-[39px] top-0 bottom-0 w-0.5 timeline-gradient opacity-30 rounded-full"></div>
+<!-- Morning Node -->
+<div class="relative flex flex-col items-center pt-2">
+<div class="text-xs font-bold text-on-surface-variant mb-2">08:00</div>
+<div class="w-4 h-4 rounded-full border-4 border-surface bg-primary shadow-[0_0_12px_rgba(177,161,255,0.6)] z-10"></div>
+</div>
+<!-- Morning Event Card -->
+<div class="mb-16">
+<div class="glass-panel rounded-2xl p-6 border-t border-white/10 shadow-[0_20px_40px_rgba(118,88,248,0.05)] group relative">
+<!-- Resize/Edit Handles -->
+<div class="absolute -right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-ns-resize">
+<div class="w-1.5 h-12 bg-white/20 rounded-full"></div>
+</div>
+<div class="flex gap-6">
+<div class="w-32 h-32 rounded-xl overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="romantic morning sunlight hitting a typical parisian cafe terrace with marble tables and wicker chairs in the latin quarter" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDz1nn2iTw3IbDtt37tvlW5gYehAgr1aSynkP7d34iEJ8sI1VW1szvDenbWUz4ur5ZoH3u0jYfgOLvBB_3NmqpKu0oD5xcjM_nzjzViL2lShLRuS8wNfOSVRrPwpRrTATxjwaX6RYhxTSBnC98NDBJ0BIJDmgSQSs9NUeQdEXt3DnKYl5xfJ_46kMr7ybmmjdYT3blnRHrBFdHO_7bKWliwJp4GVgIMRg96XG1yskB2--keb83MJcxqwKTJc5jQl7S4sYpNEGmRhuUz"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-2">
+<span class="px-3 py-1 bg-primary/20 text-primary-container text-[10px] font-bold uppercase tracking-widest rounded-full">Breakfast</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-primary transition-colors">edit</span>
+</div>
+<h3 class="font-headline text-2xl font-bold mb-1 tracking-tight">Les Deux Magots</h3>
+<p class="text-on-surface-variant text-sm mb-4">Iconic literary haunt serving the city's finest hot chocolate and pain au chocolat.</p>
+<div class="flex items-center gap-4 text-xs font-semibold text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span> 1.5 Hours</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">location_on</span> Saint-Germain-des-Prés</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Vertical Flow Arrow -->
+<div class="col-start-2 flex justify-center py-4">
+<span class="material-symbols-outlined text-primary-dim/40 scale-150">expand_more</span>
+</div>
+<!-- Midday Node -->
+<div class="relative flex flex-col items-center pt-2">
+<div class="text-xs font-bold text-on-surface-variant mb-2">10:30</div>
+<div class="w-4 h-4 rounded-full border-4 border-surface bg-secondary shadow-[0_0_12px_rgba(0,210,255,0.6)] z-10"></div>
+</div>
+<!-- Midday Event Card (Larger Duration Spacing) -->
+<div class="mb-32">
+<div class="glass-panel rounded-2xl p-6 border-t border-white/10 shadow-[0_20px_40px_rgba(0,210,255,0.05)] group relative">
+<div class="absolute -right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-ns-resize">
+<div class="w-1.5 h-12 bg-white/20 rounded-full"></div>
+</div>
+<div class="flex gap-6">
+<div class="w-32 h-48 rounded-xl overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="dramatic wide angle interior of the louvre museum pyramid with soft directional light and modern architectural lines" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4Z5pXRZDAYvobZYaoWtf6M0n8h9v3eqwoqcVmLbD4IHwWkDYAm6yhj9Nzre3aFMqGdYAezbHcZ83llYJiL9_InCFvv_OSEKhqxsyYrqeNDtO8juV0WglqEOWh2d0m1sVmS1f_ju2a-Qi96JxETJ_e4hkyI7INfU2QYCvr7W39k3pL3buB3R9PApd5t_Ib9HgsUK6xGH3F_PpBkzD_QBwC5pw74BrBtBS5BrYV9o9UFi7LWqlmXuf0FO9PedWqFbyagz4vTno-ncBL"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-2">
+<span class="px-3 py-1 bg-secondary/20 text-secondary-fixed text-[10px] font-bold uppercase tracking-widest rounded-full">Culture</span>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-secondary">star</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-secondary">edit</span>
+</div>
+</div>
+<h3 class="font-headline text-2xl font-bold mb-1 tracking-tight">Louvre Masterpieces</h3>
+<p class="text-on-surface-variant text-sm mb-4 leading-relaxed">A curated AI-path through the Denon wing focusing on Italian masters and the Apollo Gallery's crown jewels.</p>
+<div class="flex items-center gap-4 text-xs font-semibold text-on-surface-variant mb-6">
+<span class="flex items-center gap-1 text-secondary"><span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span> AI Curated</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span> 4.0 Hours</span>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl flex items-center gap-4">
+<div class="p-2 bg-secondary/10 rounded-lg">
+<span class="material-symbols-outlined text-secondary text-lg">confirmation_number</span>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-tighter">Fast Pass</p>
+<p class="text-sm font-bold">Confirmed for 10:45</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Afternoon Node -->
+<div class="relative flex flex-col items-center pt-2">
+<div class="text-xs font-bold text-on-surface-variant mb-2">15:00</div>
+<div class="w-4 h-4 rounded-full border-4 border-surface bg-tertiary shadow-[0_0_12px_rgba(255,107,149,0.6)] z-10"></div>
+</div>
+<!-- Afternoon Event Card -->
+<div class="mb-12">
+<div class="glass-panel rounded-2xl p-6 border-t border-white/10 shadow-[0_20px_40px_rgba(255,107,149,0.05)] group relative">
+<div class="absolute -right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-ns-resize">
+<div class="w-1.5 h-12 bg-white/20 rounded-full"></div>
+</div>
+<div class="flex gap-6">
+<div class="w-32 h-32 rounded-xl overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="aerial sunset view of the eiffel tower from a distance with glowing city lights and pink twilight sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADAgNgER8CXQjym_YWgsJZGshkzsX2n6zfpvISkGNG6S7cMUlH8UQUzm-SB67zYi-HLTEP6kBlik5Rg310LNkR4soHWP1cYQdFafrrJT9yB4yDcJJG1R-0xzleiztzox81yR30EoJ9RIB6p0Dwf_owG2vPa_kWneo5XF2eb3gMUW1jTHBVxLIDdplmKeFxpZ1NhukCipN8qaorhChilFLhlCb_872QNCioH2B8aXGOPhDP0E7BL_zom24xtkmzgFcD3zs0sPEhy2FF"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-start mb-2">
+<span class="px-3 py-1 bg-tertiary/20 text-tertiary-fixed text-[10px] font-bold uppercase tracking-widest rounded-full">Leisure</span>
+<span class="material-symbols-outlined text-on-surface-variant text-sm cursor-pointer hover:text-tertiary">edit</span>
+</div>
+<h3 class="font-headline text-2xl font-bold mb-1 tracking-tight">Tuileries Walk</h3>
+<p class="text-on-surface-variant text-sm mb-4">A leisurely stroll through the formal gardens toward the Place de la Concorde.</p>
+<div class="flex items-center gap-4 text-xs font-semibold text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">schedule</span> 1.0 Hour</span>
+<span class="flex items-center gap-1 text-tertiary-dim"><span class="material-symbols-outlined text-sm">sunny</span> Weather: Perfect 22°C</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center pt-4 pb-8 px-6 bg-[#22262f]/60 backdrop-blur-[30px] rounded-t-[2rem] z-50 border-t border-white/10 shadow-[0_-10px_40px_rgba(118,88,248,0.1)]">
+<a class="flex flex-col items-center justify-center text-[#a9abb3] opacity-70 hover:text-[#b1a1ff] transition-colors active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#a9abb3] opacity-70 hover:text-[#b1a1ff] transition-colors active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Explore</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#00d2ff] scale-110 transition-transform active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">auto_awesome_motion</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Trips</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#a9abb3] opacity-70 hover:text-[#b1a1ff] transition-colors active:scale-90 duration-300" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Manrope'] text-[10px] uppercase tracking-widest font-semibold mt-1">Profile</span>
+</a>
+</nav>
+<!-- AI Pulse Button Floating Action -->
+<button class="fixed right-6 bottom-28 w-14 h-14 rounded-full bg-gradient-to-br from-secondary to-primary flex items-center justify-center text-on-primary-fixed shadow-[0_0_30px_rgba(0,210,255,0.4)] animate-pulse hover:scale-105 active:scale-95 transition-all z-40">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+</button>
+</body></html>

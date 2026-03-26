@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Routewise AI | The Ethereal Navigator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#adc6ff",
+              "on-tertiary": "#3c0091",
+              "on-primary-fixed-variant": "#004e5a",
+              "surface-tint": "#2fd9f4",
+              "surface-variant": "#2f3445",
+              "on-secondary-fixed": "#001a42",
+              "tertiary": "#e4d6ff",
+              "on-primary-container": "#005763",
+              "secondary-container": "#0566d9",
+              "primary-fixed-dim": "#2fd9f4",
+              "tertiary-fixed-dim": "#d0bcff",
+              "secondary-fixed": "#d8e2ff",
+              "on-secondary-container": "#e6ecff",
+              "on-secondary": "#002e6a",
+              "background": "#0e1322",
+              "surface-bright": "#343949",
+              "surface-container": "#1a1f2f",
+              "on-tertiary-fixed-variant": "#5516be",
+              "tertiary-fixed": "#e9ddff",
+              "on-surface-variant": "#bbc9cd",
+              "on-background": "#dee1f7",
+              "outline": "#859397",
+              "tertiary-container": "#cbb5ff",
+              "on-tertiary-fixed": "#23005c",
+              "surface-container-lowest": "#090e1c",
+              "inverse-surface": "#dee1f7",
+              "primary-container": "#22d3ee",
+              "on-secondary-fixed-variant": "#004395",
+              "inverse-primary": "#006877",
+              "on-primary": "#00363e",
+              "surface-dim": "#0e1322",
+              "secondary-fixed-dim": "#adc6ff",
+              "surface-container-high": "#25293a",
+              "on-error": "#690005",
+              "primary-fixed": "#a2eeff",
+              "inverse-on-surface": "#2b3040",
+              "on-error-container": "#ffdad6",
+              "surface-container-low": "#161b2b",
+              "surface-container-highest": "#2f3445",
+              "on-surface": "#dee1f7",
+              "outline-variant": "#3c494c",
+              "on-tertiary-container": "#5d24c6",
+              "error": "#ffb4ab",
+              "on-primary-fixed": "#001f25",
+              "primary": "#8aebff",
+              "surface": "#0e1322",
+              "error-container": "#93000a"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>body {
+    background-color: #0e1322;
+    color: #dee1f7;
+    font-family: "Inter", sans-serif;
+    overflow-x: hidden
+    }
+.glass-panel {
+    background: rgba(26, 31, 47, 0.4);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px)
+    }
+.grain-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.02;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuA0e5MkPhzoX93gCG7BWktqpckywGdXaDPHsyuVWE38Yx6tU0Kr2_i-xtdDZlr3grk58xmK_1ZhLCVYL5qEiwtfTw4eoL3cq7GiEpKQfgpF-xtlgqXPWttqv1cuN1DNTWWpLIwJ0zC5vBQkPWfCg-VZzfPMGKa1148LH2ceDz-7xA-anmiEAW8UJNhmRMavK-fYKhsnSHH_R-ASuS4qJ7wkrypt2umjA-AaZ0SSlZXw_mleJrNpi9sUDur5c0AT_vLpEd7gdqow1uw)
+    }
+.shimmer-sweep::after {
+    content: "";
+    position: absolute;
+    top: -100%;
+    left: -100%;
+    width: 300%;
+    height: 300%;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(25deg);
+    transition: 0.5s
+    }
+.shimmer-sweep:hover::after {
+    left: 100%;
+    top: 100%
+    }
+.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 300, "GRAD" 0, "opsz" 24
+    }</style>
+</head>
+<body class="bg-surface font-body">
+<div class="grain-overlay"></div>
+<!-- SideNavBar (Execution from JSON) -->
+<aside class="fixed left-0 top-0 h-full z-40 flex flex-col justify-between bg-[#0e1322]/80 backdrop-blur-3xl border-r border-white/10 w-64 shadow-2xl font-['Inter'] text-[0.875rem] tracking-wide">
+<div class="flex flex-col">
+<div class="p-8">
+<div class="flex items-center gap-3 mb-10">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-tertiary flex items-center justify-center shadow-[0_0_20px_rgba(138,235,255,0.4)]">
+<span class="material-symbols-outlined text-on-primary">explore</span>
+</div>
+<div>
+<h2 class="text-on-surface font-black text-lg tracking-tighter">Routewise AI</h2>
+<p class="text-[0.6rem] uppercase tracking-widest text-primary font-bold opacity-80">Ethereal Navigator Active</p>
+</div>
+</div>
+<nav class="space-y-2">
+<a class="bg-cyan-500/10 text-cyan-400 border-r-4 border-cyan-400 flex items-center gap-3 px-6 py-4 hover:shadow-[0_0_15px_-2px_rgba(34,211,238,0.3)] transition-all duration-500" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="text-slate-400 flex items-center gap-3 px-6 py-4 hover:text-slate-100 hover:bg-white/5 transition-all duration-500" href="#">
+<span class="material-symbols-outlined">auto_awesome_motion</span>
+<span>Planner</span>
+</a>
+<a class="text-slate-400 flex items-center gap-3 px-6 py-4 hover:text-slate-100 hover:bg-white/5 transition-all duration-500" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span>Analytics</span>
+</a>
+<a class="text-slate-400 flex items-center gap-3 px-6 py-4 hover:text-slate-100 hover:bg-white/5 transition-all duration-500" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+</div>
+<div class="p-8">
+<button class="w-full bg-primary-container text-on-primary-container py-4 rounded-xl font-bold flex items-center justify-center gap-2 mb-8 relative overflow-hidden group transition-all duration-300 active:scale-95 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)]">
+<span class="material-symbols-outlined">add</span>
+                New Journey
+                <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+</button>
+<div class="space-y-1">
+<a class="text-slate-400 flex items-center gap-3 px-6 py-3 hover:text-slate-100 text-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[1.2rem]">help</span> Help
+                </a>
+<a class="text-slate-400 flex items-center gap-3 px-6 py-3 hover:text-error text-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-[1.2rem]">logout</span> Logout
+                </a>
+</div>
+</div>
+</aside>
+<main class="ml-64 min-h-screen relative">
+<!-- TopNavBar (Execution from JSON) -->
+<header class="fixed top-0 w-[calc(100%-16rem)] flex justify-between items-center px-12 h-20 bg-[#0e1322]/60 backdrop-blur-2xl border-b border-white/10 z-50 font-['Inter'] tracking-tight text-slate-100 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-violet-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]">Routewise</span>
+<nav class="hidden md:flex gap-8">
+<a class="text-slate-400 hover:text-slate-100 transition-colors" href="#">Explore</a>
+<a class="text-cyan-400 font-bold border-b-2 border-cyan-400 pb-1" href="#">My Journeys</a>
+<a class="text-slate-400 hover:text-slate-100 transition-colors" href="#">Vault</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined p-2 rounded-full hover:bg-white/5 cursor-pointer text-slate-400 hover:text-primary transition-all duration-300">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full ring-2 ring-background"></span>
+</div>
+<div class="flex items-center gap-3 pl-6 border-l border-white/10">
+<span class="text-sm font-medium text-slate-300">Julian Vance</span>
+<div class="w-10 h-10 rounded-full border-2 border-primary/30 p-0.5">
+<img alt="Profile Avatar" class="w-full h-full rounded-full object-cover" data-alt="portrait of a professional man in a dark turtleneck looking thoughtfully into the distance with cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-nrF-uF7HoTTzdMxdnyYpgC9w1_7h957l1qlekdlXaDCO_yzslDVm3RCZOS6RyK-dN4BPl-Z-Fzl2oP9ck-I-TKiqIKiLwKXuXQatyvdn5IuV1a9IZHwxIt52rTp-SNimd-DYPTELcVR-P_sT-57YKlfEYZWgZQq_0W7buSgeOkPrln6zgHs4RUcJ5XBf48jngSI5B2aVDVsinoM3vsBoBGzn1qQgR6DfwaaeFsXdSUbxu3JY5lZIfZ0kcuHsQCc4birOlvwCOWk"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="pt-32 px-12 pb-20">
+<!-- Hero Section -->
+<section class="relative mb-24 grid grid-cols-12 gap-8 items-center">
+<div class="col-span-7">
+<h4 class="text-primary font-bold tracking-[0.3em] uppercase mb-4 text-xs opacity-80">AI Narrative Experience</h4>
+<h1 class="text-6xl lg:text-7xl font-black tracking-tighter leading-[0.9] mb-8 bg-clip-text text-transparent bg-gradient-to-r from-primary via-on-background to-tertiary drop-shadow-[0_0_30px_rgba(138,235,255,0.2)]">
+                        The Journey <br/> Awaits.
+                    </h1>
+<p class="text-on-surface-variant text-lg max-w-xl leading-relaxed mb-10">
+                        Our neural network has mapped three potential trajectories through the northern fjords. Each path is optimized for solitude, light quality, and temporal efficiency. 
+                    </p>
+<div class="flex gap-4">
+<button class="px-8 py-4 bg-primary text-on-primary font-bold rounded-xl flex items-center gap-3 shimmer-sweep relative overflow-hidden transition-transform active:scale-95 shadow-[0_10px_30px_rgba(138,235,255,0.2)]">
+                            Initialize Protocol
+                            <span class="material-symbols-outlined">bolt</span>
+</button>
+<button class="px-8 py-4 border border-outline-variant/30 text-on-surface font-semibold rounded-xl hover:bg-white/5 transition-all">
+                            View Archival Routes
+                        </button>
+</div>
+</div>
+<div class="col-span-5 relative aspect-square">
+<!-- Asymmetric Design Element: Globe / Temporal Node Visualization -->
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/10 via-tertiary/5 to-transparent rounded-full animate-pulse blur-3xl"></div>
+<div class="relative w-full h-full border border-white/5 rounded-full flex items-center justify-center backdrop-blur-sm overflow-hidden group">
+<img alt="Digital Earth" class="absolute inset-0 w-full h-full object-cover opacity-40 scale-110 group-hover:scale-100 transition-transform duration-[10s]" data-alt="digital representation of earth with luminous network lines and glowing nodes on a deep space background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzAKplEKauqcMUsdg94eYqgsZ_A22v71XSPAHITbC-Klby4z6hCKOxTYSPKlOr-V95rKs6U-4IDn9xnBhER3CwUjpnuy-6fnwm4b4iYIIe8ErUnu491nz78SnCU1CzddeO65hlhbyrTVzFSP7ue42Oh1kycYaDyOd9d76hkjlA9Zph4_0G_x5lIBhb13qv2zBXWGuZ8SDwTVdAtkMRT7kjQWGd2Ok1Pu9Afc29vpr1BhyoB7G8sGdLTQWo_WMogt8WP3z5Xr057u4"/>
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_#0e1322_70%)]"></div>
+<!-- Floating Data Nodes -->
+<div class="absolute top-1/4 left-1/4 p-4 glass-panel border border-primary/20 rounded-xl shadow-xl transform -rotate-12 translate-x-4">
+<span class="block text-[0.6rem] text-primary uppercase font-black tracking-widest mb-1">Optimized</span>
+<span class="text-xl font-bold text-white tracking-tight">Reykjavik</span>
+</div>
+<div class="absolute bottom-1/3 right-10 p-4 glass-panel border border-tertiary/20 rounded-xl shadow-xl transform rotate-6 translate-y-8">
+<span class="block text-[0.6rem] text-tertiary uppercase font-black tracking-widest mb-1">Temporal Shift</span>
+<span class="text-xl font-bold text-white tracking-tight">Tromsø +4h</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Guided AI Planner (Input Panel) -->
+<section class="mb-24">
+<div class="glass-panel rounded-3xl p-1 px-1 bg-gradient-to-br from-white/10 to-transparent">
+<div class="bg-surface-container-low rounded-[1.4rem] p-10 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none"></div>
+<div class="flex items-center gap-4 mb-10">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h3 class="text-2xl font-bold text-on-surface tracking-tight">Guided AI Planner</h3>
+<p class="text-on-surface-variant text-sm">Define your constraints. Let the machine orchestrate the experience.</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+<div class="space-y-2">
+<label class="block text-[0.6875rem] uppercase tracking-wider font-black text-primary/70 ml-1">Destination</label>
+<div class="relative group">
+<input class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 text-on-surface py-4 px-4 focus:ring-0 focus:border-primary transition-all rounded-t-lg placeholder:text-slate-600" placeholder="Where to?" type="text"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">location_on</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-[0.6875rem] uppercase tracking-wider font-black text-primary/70 ml-1">Budget Horizon</label>
+<div class="relative group">
+<select class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 text-on-surface py-4 px-4 focus:ring-0 focus:border-primary transition-all rounded-t-lg appearance-none">
+<option>Premium Tier</option>
+<option>Executive</option>
+<option>Bespoke Luxury</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">payments</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-[0.6875rem] uppercase tracking-wider font-black text-primary/70 ml-1">Duration</label>
+<div class="relative group">
+<input class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 text-on-surface py-4 px-4 focus:ring-0 focus:border-primary transition-all rounded-t-lg placeholder:text-slate-600" placeholder="e.g. 12 Days" type="text"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">schedule</span>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-[0.6875rem] uppercase tracking-wider font-black text-primary/70 ml-1">Neural Persona</label>
+<div class="relative group">
+<select class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 text-on-surface py-4 px-4 focus:ring-0 focus:border-primary transition-all rounded-t-lg appearance-none">
+<option>Solo Archetype</option>
+<option>Ensemble Expedition</option>
+<option>Velocity Minimalist</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">psychology</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Journeys: Horizontal Bento Scroll -->
+<section>
+<div class="flex justify-between items-end mb-8 px-2">
+<div>
+<h2 class="text-3xl font-black tracking-tight text-white mb-2">Recent Journeys</h2>
+<p class="text-on-surface-variant text-sm">Archived memories and active neural paths.</p>
+</div>
+<div class="flex gap-3">
+<button class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<div class="flex gap-8 overflow-x-auto pb-12 scrollbar-hide no-scrollbar -mx-4 px-4">
+<!-- Card 1 -->
+<div class="min-w-[400px] group">
+<div class="relative h-[500px] rounded-3xl overflow-hidden glass-panel border border-white/5 group-hover:border-primary/20 transition-all duration-500">
+<img alt="Tokyo at night" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700 group-hover:scale-110" data-alt="low-angle cinematic shot of bright neon signs in Shinjuku Tokyo at night with reflecting rain on the asphalt" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYOyjNKrusxrctRA713roB4UYTkC3v336hXCE_krbzqjlGqdDYBmC-5rGBznCt5nZvG1NFHtyvUDGmdf2MpiP_V5yxBZfBfPlb0qgPjk3TdD_EFQUAqGAdqa58PG5ePTEWrwybK39J0R8YpZIGpVnyPjN75DTDTY9EBiS4LCFkKo1DqSuUvoM5c_6BIDrTdYC2DzwW1H8cP-JgnqsnleEucwYzDStsLRXp9mDcZi63iZC1-LZYhN6uKNBc8Axa5sdNmW-Hdv5HOGg"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<div class="mb-6">
+<span class="px-3 py-1 rounded-full bg-primary/20 text-primary text-[0.6rem] font-black uppercase tracking-widest border border-primary/20">Active Expedition</span>
+</div>
+<h3 class="text-3xl font-black text-white mb-2 group-hover:translate-x-2 transition-transform duration-500">Neo-Tokyo Pulse</h3>
+<div class="flex items-center gap-4 text-on-surface-variant text-sm mb-6">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[1rem]">calendar_today</span> Oct 12-24</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[1rem]">group</span> 2 People</span>
+</div>
+<div class="h-1 bg-white/10 rounded-full w-full overflow-hidden">
+<div class="h-full bg-primary w-[65%] shadow-[0_0_10px_#8aebff]"></div>
+</div>
+<div class="mt-4 flex justify-between text-[0.65rem] font-bold text-on-surface-variant tracking-wider uppercase">
+<span>Progress</span>
+<span>65% Optimized</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[400px] group">
+<div class="relative h-[500px] rounded-3xl overflow-hidden glass-panel border border-white/5 group-hover:border-tertiary/20 transition-all duration-500">
+<img alt="Swiss Alps" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700 group-hover:scale-110" data-alt="jagged snow-capped swiss mountain peaks piercing through soft white clouds with crystal clear blue sky background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCODpp0OAqnjKzhULz8gZ3x1SVLhJuHTbHgdSI-Wh5DjjZkp2Sc5IzIM0TXDkdEZ8xEZsUlFfgA7xm68CPO2aPHj80QQcL4acYxSIdIgtV8OvExtsBf2oYJbxXwK7qrHyGeHtNVm-ON4GWA_tvIvEI1spocOvYqPC3VwaPHr8ebqI1TW_cy_sFVQbOTC9-_3wHND-RkKgaPZiWnufItDOQhuHPzj88LYzoskHkBxi5ugfezlo4jsrsugMmH6LP4whGv_CJ9BFz3FdA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<div class="mb-6">
+<span class="px-3 py-1 rounded-full bg-slate-800 text-slate-400 text-[0.6rem] font-black uppercase tracking-widest border border-white/5">Archived Path</span>
+</div>
+<h3 class="text-3xl font-black text-white mb-2 group-hover:translate-x-2 transition-transform duration-500">Alpine Solitude</h3>
+<div class="flex items-center gap-4 text-on-surface-variant text-sm mb-6">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[1rem]">calendar_today</span> Jan 04-18</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[1rem]">group</span> Solo</span>
+</div>
+<button class="w-full py-4 border border-tertiary/20 text-tertiary rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-tertiary/10 transition-colors">
+                                    Recall Journey
+                                    <span class="material-symbols-outlined">history</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="min-w-[400px] group">
+<div class="relative h-[500px] rounded-3xl overflow-hidden glass-panel border border-white/5 group-hover:border-secondary/20 transition-all duration-500">
+<img alt="Icelandic Landscape" class="absolute inset-0 w-full h-full object-cover grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700 group-hover:scale-110" data-alt="vast black sand beach in iceland with moody storm clouds and distant monolithic basalt sea stacks at twilight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCX82oOYVJUapq3WpJfGnO6JSRbtenDToKHvf-eHlc1vk6afWz_OZpSgFfFpCG9DZM3QuZTeoH-lqCuSA9hEvJQTnjvyrOeircy2lMPtq7QoDffW1ZFNmFi78GM8GaiAHZ7h0N3n6dI6xdHlGlDVe_u-D5DEMkAN0bYQoCnRvONTBxyb49epY2ZhFfv9idddfEpqcnlDekPCOSotyqf1_7Fq682CdUkEBHxpqPW0j6ac08CFOSOnP93LlnNS2yjdvd4LZOFgZAoQxY"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent"></div>
+<div class="absolute inset-0 p-8 flex flex-col justify-end">
+<div class="mb-6">
+<span class="px-3 py-1 rounded-full bg-secondary/20 text-secondary text-[0.6rem] font-black uppercase tracking-widest border border-secondary/20">Proposed Protocol</span>
+</div>
+<h3 class="text-3xl font-black text-white mb-2 group-hover:translate-x-2 transition-transform duration-500">The Void Edge</h3>
+<div class="flex items-center gap-4 text-on-surface-variant text-sm mb-6">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[1rem]">calendar_today</span> Dec 15-28</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-[1rem]">group</span> 4 People</span>
+</div>
+<div class="flex gap-2">
+<div class="flex-1 h-2 rounded-full bg-white/5"></div>
+<div class="flex-1 h-2 rounded-full bg-white/5"></div>
+<div class="flex-1 h-2 rounded-full bg-white/5"></div>
+<div class="flex-1 h-2 rounded-full bg-white/5"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Contextual FAB (Suppressed based on rules, not rendered for Dashboard as per mandate "Suppress FAB on Settings, Profile, Details, and Transactional" - while this is Dashboard, the rule implies task-focused screens. Let's keep the shell clean for premium luxury.) -->
+</body></html>

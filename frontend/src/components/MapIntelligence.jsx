@@ -94,9 +94,9 @@ const MapIntelligence = memo(({ data, destination, onMarkerClick, activeId }) =>
     runGeocoding();
   }, [data, destination]);
 
-  // PHASE 7 — MAP SYNC SAFETY (Refined with Strict Filter & Sorting)
+  // PHASE 11 — MAP SYNC SAFETY
   const validPoints = points.filter(
-    p => p && p.lat && p.lng && p.place && p.place.length > 2 && p.activity
+    p => p && p.lat && p.lng
   ).sort((a, b) => {
     if (a.day !== b.day) return a.day - b.day;
     const timeOrder = { "Morning": 1, "Afternoon": 2, "Evening": 3, "Night": 4 };
@@ -138,13 +138,24 @@ const MapIntelligence = memo(({ data, destination, onMarkerClick, activeId }) =>
 
   if (!data || data.length === 0) return null;
 
-  // PHASE 3 — HANDLE GEOCODING DELAY
-  if (!validPoints.length) {
+  // PHASE 11 — HANDLE GEOCODING DELAY / EMPTY STATE
+  if (loading && !validPoints.length) {
     return (
       <div className="map-intelligence-wrapper glass fade-in" style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="map-loading-experience">
           <div className="spinner-minimal" style={{ marginBottom: '1rem' }} />
           <div className="loading-stage-text">Mapping locations...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!validPoints.length) {
+    return (
+      <div className="map-intelligence-wrapper glass fade-in" style={{ height: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.2)' }}>
+        <div className="map-empty-state" style={{ textAlign: 'center', opacity: 0.7 }}>
+          <MapPin size={32} style={{ marginBottom: '1rem', color: 'var(--text-muted)' }} />
+          <div className="loading-stage-text">No geographic data available for this plan.</div>
         </div>
       </div>
     );
@@ -193,20 +204,29 @@ const MapIntelligence = memo(({ data, destination, onMarkerClick, activeId }) =>
                 <div className="map-popup-card">
                   <div className="popup-header">
                     <span className="popup-day-badge">Day {point.day || '?'}</span>
-                    <span className="popup-time">{point.time || 'Anytime'}</span>
+                    <span className="popup-time">{point.time || point.exactTime || 'Anytime'}</span>
                   </div>
-                  <h4 className="popup-title">{point.place || 'Unknown Place'}</h4>
-                  <p className="popup-activity">{point.activity || 'Activity details unavailable'}</p>
+                  <h4 className="popup-title">{point.place || point.activity || 'Experience Highlight'}</h4>
+                  <p className="popup-activity">{point.activity || point.place || 'Activity details unavailable'}</p>
                   
-                  {/* Phase 6 — Rich Data Popups */}
+                  {/* Phase 11 — Zero-Trust Rich Data Popups */}
                   <div className="popup-extra">
-                    {(point.cost !== undefined && point.cost !== null) && <span className="popup-cost">${point.cost}</span>}
-                    {point.notes && <p className="popup-notes">“{point.notes}”</p>}
+                    <div className="popup-notes-row">
+                       <strong>Time:</strong> {point.time || 'Anytime'}
+                    </div>
+                    <div className="popup-notes-row">
+                       <strong>Cost:</strong> ${Number(point.cost || 0).toFixed(0)}
+                    </div>
+                    {point.notes && (
+                      <div className="popup-notes-row">
+                         <strong>Notes:</strong> {point.notes}
+                      </div>
+                    )}
                   </div>
 
                   <div className="popup-footer">
                     <Navigation size={10} className="text-cyan-400" />
-                    <span>Click to focus in list</span>
+                    <span>Focus in details</span>
                   </div>
                 </div>
               </Popup>
