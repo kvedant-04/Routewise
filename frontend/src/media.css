@@ -45,6 +45,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
+  align-items: start;
 }
 
 /* Media card */
@@ -133,10 +134,10 @@
 
 /* Card body */
 .lv-card-body {
-  padding: 0.85rem 1rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.6rem;
 }
 
 .lv-card-top {
