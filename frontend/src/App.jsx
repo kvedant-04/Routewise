@@ -402,19 +402,41 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
     return null;
   }, [viewMode, safeEvents, activeId, itinerary, setActiveId]);
 
-  // Fallback UI for empty/invalid itinerary
+  // Fallback UI — premium empty state with step guide
   const FallbackUI = () => (
     <div className="itinerary-empty">
-      <div className="empty-orb">
+      <div className="empty-orb" aria-hidden="true">
         <div className="empty-orb-inner" />
         <div className="empty-orb-ring" />
       </div>
       <p className="empty-title">Your journey unfolds here</p>
       <p className="empty-desc">
-        Fill in your destination, budget, and trip length in the control
-        panel, then hit <strong style={{ color: 'var(--cyan)' }}>Plan My Journey</strong> to
-        generate a personalized AI itinerary.
+        Let Routewise's multi-agent AI craft a hyper-personalized itinerary
+        in seconds — complete with maps, budgets, and hidden gems.
       </p>
+      <div className="empty-steps" role="list" aria-label="How to get started">
+        <div className="empty-step" role="listitem">
+          <span className="empty-step-num" aria-hidden="true">01</span>
+          <div className="empty-step-text">
+            <strong>Enter destination</strong>
+            <span>Any city, country, or region</span>
+          </div>
+        </div>
+        <div className="empty-step" role="listitem">
+          <span className="empty-step-num" aria-hidden="true">02</span>
+          <div className="empty-step-text">
+            <strong>Set budget &amp; duration</strong>
+            <span>Daily or total budget in any currency</span>
+          </div>
+        </div>
+        <div className="empty-step" role="listitem">
+          <span className="empty-step-num" aria-hidden="true">03</span>
+          <div className="empty-step-text">
+            <strong>Hit Plan My Journey</strong>
+            <span>AI generates your full itinerary</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -484,23 +506,22 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
       ) : (
         <div className="itinerary-content">
           {(!safeEvents || safeEvents.length === 0) ? (
-            <div className="parsing-state glass fade-in" style={{ marginBottom: '1.5rem', height: 'auto', padding: '2rem', textAlign: 'center' }}>
-              <div className="parsing-content" style={{ flexDirection: 'column', gap: '1rem' }}>
-                <AlertCircle size={32} color="var(--violet)" style={{ opacity: 0.6 }} />
-                <div className="parsing-text-stack">
-                  <h3 className="parsing-title" style={{ fontSize: '1.1rem' }}>Itinerary Generation Incomplete</h3>
-                  <p className="parsing-subtitle" style={{ fontSize: '0.9rem', maxWidth: '300px', margin: '0.5rem auto 0' }}>
-                    We received structural data but couldn't parse readable activities. Please try a more specific destination.
-                  </p>
-                </div>
-                <button 
-                  onClick={() => window.location.reload()}
-                  className="btn-primary" 
-                  style={{ width: 'auto', padding: '0.6rem 1.2rem', marginTop: '1rem', fontSize: '0.8rem' }}
-                >
-                  Reset & Retry
-                </button>
+            <div className="empty-error-card" role="alert" aria-live="assertive">
+              <AlertCircle size={36} color="var(--violet)" aria-hidden="true" />
+              <div className="empty-error-body">
+                <h3 className="empty-error-title">Itinerary Generation Incomplete</h3>
+                <p className="empty-error-desc">
+                  We received structural data but couldn't parse activities.<br />
+                  Try a more specific destination or simplify your request.
+                </p>
               </div>
+              <button
+                onClick={() => window.location.reload()}
+                className="btn-primary empty-error-action"
+                aria-label="Reset the application and retry"
+              >
+                Reset &amp; Retry
+              </button>
             </div>
           ) : (
             <ErrorBoundary fallbackUI={itinerary ? <FallbackView markdown={itinerary} /> : <div>Error loading itinerary</div>}>

@@ -1172,6 +1172,106 @@ textarea:focus-visible {
   color: var(--text-muted);
   line-height: 1.7;
   max-width: 320px;
+  margin-bottom: 2rem;
+}
+
+/* Empty State — 3-step guide */
+.empty-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 340px;
+  text-align: left;
+}
+
+.empty-step {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.empty-step:hover {
+  background: rgba(34, 211, 238, 0.04);
+  border-color: rgba(34, 211, 238, 0.15);
+}
+
+.empty-step-num {
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--cyan);
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  border-radius: 6px;
+  padding: 0.25rem 0.45rem;
+  flex-shrink: 0;
+  font-family: var(--font-display);
+}
+
+.empty-step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.empty-step-text strong {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.empty-step-text span {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Error Recovery Card */
+.empty-error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 2.5rem 2rem;
+  margin-bottom: 1.5rem;
+  background: rgba(139, 92, 246, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 18px;
+  text-align: center;
+  animation: fadeSlideUp 0.4s var(--ease-luxury) both;
+}
+
+.empty-error-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.empty-error-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.empty-error-desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 300px;
+}
+
+.empty-error-action {
+  width: auto !important;
+  padding: 0.6rem 1.5rem !important;
+  font-size: 0.82rem !important;
+  margin-top: 0.25rem;
 }
 
 /* ---- ITINERARY CONTENT ---- */
