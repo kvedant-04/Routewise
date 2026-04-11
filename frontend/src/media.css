@@ -77,6 +77,25 @@
   flex-direction: column;
   transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
   cursor: default;
+  position: relative;
+}
+
+/* Narrative Flow Connector */
+.lv-card--media::after {
+  content: "→";
+  position: absolute;
+  bottom: 0.85rem;
+  right: 1rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.06);
+  transition: transform 280ms ease, color 280ms ease;
+  pointer-events: none;
+}
+
+.lv-card--media:hover::after {
+  transform: translateX(4px);
+  color: var(--cyan);
 }
 
 .lv-card--media:hover {
