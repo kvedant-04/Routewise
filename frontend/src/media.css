@@ -58,6 +58,14 @@
   letter-spacing: 0.1em;
   color: #e0e7ff;
   box-shadow: 0 4px 16px rgba(99,102,241,0.15);
+  transition: all 300ms cubic-bezier(0.165, 0.84, 0.44, 1);
+  cursor: default;
+}
+
+.lv-day-pill:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(99,102,241,0.25), 0 0 0 1px rgba(34, 211, 238, 0.3) inset;
+  background: linear-gradient(135deg, rgba(99,102,241,0.3) 0%, rgba(34,211,238,0.2) 100%);
 }
 
 .lv-cards {
@@ -75,7 +83,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  transition: all 400ms cubic-bezier(0.165, 0.84, 0.44, 1);
   cursor: default;
   position: relative;
 }
@@ -89,7 +97,7 @@
   font-size: 1.1rem;
   font-weight: 800;
   color: rgba(255,255,255,0.06);
-  transition: transform 280ms ease, color 280ms ease;
+  transition: transform 300ms cubic-bezier(0.165, 0.84, 0.44, 1), color 300ms ease;
   pointer-events: none;
 }
 
@@ -99,9 +107,10 @@
 }
 
 .lv-card--media:hover {
-  border-color: rgba(34, 211, 238, 0.3);
-  box-shadow: 0 8px 32px rgba(34, 211, 238, 0.1);
-  transform: translateY(-2px);
+  border-color: rgba(34, 211, 238, 0.5);
+  background: rgba(20, 29, 46, 0.95);
+  box-shadow: 0 16px 40px -8px rgba(34, 211, 238, 0.25), 0 0 0 1px rgba(34, 211, 238, 0.15) inset;
+  transform: translateY(-4px) scale(1.01);
 }
 
 .lv-card--active {
