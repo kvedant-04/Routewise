@@ -715,6 +715,11 @@ function App() {
 
   return (
     <>
+      {/* Skip Navigation — keyboard accessibility */}
+      <a href="#itinerary-canvas-main" className="skip-nav">
+        Skip to Itinerary
+      </a>
+
       {/* Animated Background */}
       <div className="bg-canvas" aria-hidden="true">
         <div className="orb orb-1" />
@@ -738,7 +743,7 @@ function App() {
         />
 
         {/* RIGHT: Experience Canvas */}
-        <main className="experience-canvas">
+        <main className="experience-canvas" id="itinerary-canvas-main">
 
           {/* Hero Header */}
           <header className="canvas-header">
