@@ -465,7 +465,7 @@ body {
 /* ---- LAYOUT SYSTEM ---- */
 .app-layout {
   display: grid;
-  grid-template-columns: 380px 1fr;
+  grid-template-columns: minmax(320px, 28vw) 1fr;
   min-height: 100vh;
   position: relative;
   z-index: 1;
