@@ -11,7 +11,11 @@ import ErrorBoundary from './ErrorBoundary';
 import ListView from './components/ListView';
 import TimelineView from './components/TimelineView';
 import CalendarView from './components/CalendarView';
+import FinancialDashboard from './components/FinancialDashboard';
+import StoryCarousel from './components/StoryCarousel';
+import { buildMediaMap } from './utils/mediaEngine';
 import './index.css';
+
 
 /* ─── Constants ─────────────────────────────────────────── */
 const API_URL = 'http://127.0.0.1:8000';
@@ -374,6 +378,17 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
   // Tri-View State
   const [viewMode, setViewMode] = useState('list');
 
+  // PHASE 13 — Media Map (async, non-blocking, fires after itinerary renders)
+  const [mediaMap, setMediaMap] = useState({});
+  useEffect(() => {
+    if (!safeEvents || safeEvents.length === 0) return;
+    let cancelled = false;
+    buildMediaMap(safeEvents, destination).then(map => {
+      if (!cancelled) setMediaMap(map);
+    }).catch(() => {}); // silent — media is optional
+    return () => { cancelled = true; };
+  }, [safeEvents, destination]);
+
   // PHASE 6 — FALLBACK VIEW
   const FallbackView = ({ markdown }) => (
     <div className="premium-markdown-container fade-in overflow-auto break-words whitespace-pre-wrap">
@@ -386,7 +401,8 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
     if (!safeEvents || safeEvents.length === 0) return null;
 
     try {
-      if (viewMode === "list") return <ListView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} />;
+      if (viewMode === "list") return <ListView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} mediaMap={mediaMap} />;
+
       if (viewMode === "timeline") return <TimelineView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} />;
       if (viewMode === "calendar") return <CalendarView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} />;
     } catch (e) {
@@ -509,6 +525,22 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
                   const el = document.getElementById(`activity-${id}`);
                   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }}
+              />
+
+              {/* ── PHASE 12: Financial Intelligence Dashboard ── */}
+              <FinancialDashboard
+                safeEvents={safeEvents}
+                itinerary={itinerary}
+                budget={Number(budget) || 0}
+                currency={currency}
+                destination={destination}
+              />
+
+              {/* ── PHASE 13: Day Story Carousel ── */}
+              <StoryCarousel
+                safeEvents={safeEvents}
+                mediaMap={mediaMap}
+                destination={destination}
               />
             </ErrorBoundary>
           )}

@@ -4,6 +4,8 @@
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@600;700;800;900&display=swap');
+@import './media.css';
+
 
 /* ---- CSS VARIABLES / DESIGN TOKENS ---- */
 :root {
@@ -90,6 +92,280 @@ body {
 }
 
 
+/* ====================================================================
+   PHASE 12 — FINANCIAL INTELLIGENCE DASHBOARD (fin-)
+   ==================================================================== */
+
+.fin-root {
+  margin-top: 2rem;
+  background: rgba(10, 15, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  backdrop-filter: blur(16px);
+}
+
+/* Header */
+.fin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(34, 211, 238, 0.12);
+}
+
+.fin-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.fin-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.fin-header-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cyan);
+  background: rgba(34, 211, 238, 0.1);
+  border: 1px solid rgba(34, 211, 238, 0.25);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+}
+
+.fin-icon-accent { color: var(--cyan); flex-shrink: 0; }
+
+/* Summary Strip */
+.fin-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .fin-summary-strip { grid-template-columns: 1fr; }
+}
+
+.fin-summary-card {
+  background: rgba(17, 25, 40, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  transition: border-color 200ms ease, transform 200ms ease;
+}
+
+.fin-summary-card:hover {
+  border-color: rgba(34, 211, 238, 0.2);
+  transform: translateY(-1px);
+}
+
+.fin-summary-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.fin-summary-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.fin-summary-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.fin-summary-label {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Charts */
+.fin-charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 700px) {
+  .fin-charts-row { grid-template-columns: 1fr; }
+}
+
+.fin-chart-card {
+  background: rgba(17, 25, 40, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 1rem 1.25rem 0.75rem;
+}
+
+.fin-chart-label {
+  font-size: 0.77rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+/* Recharts text override */
+.fin-chart-card text {
+  fill: #9ca3af !important;
+  font-size: 11px;
+}
+
+/* Tooltip */
+.fin-tooltip {
+  background: rgba(10, 15, 30, 0.95);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+}
+
+.fin-tooltip-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.2rem;
+}
+
+.fin-tooltip-value {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--cyan);
+}
+
+/* Bottom Row */
+.fin-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 700px) {
+  .fin-bottom-row { grid-template-columns: 1fr; }
+}
+
+/* Section header shared */
+.fin-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.fin-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-secondary);
+}
+
+/* Insights Panel */
+.fin-insights-panel {
+  background: rgba(17, 25, 40, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+}
+
+.fin-insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.fin-insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.fin-insight-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.fin-insight-text {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Export Panel */
+.fin-export-panel {
+  background: rgba(17, 25, 40, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+}
+
+.fin-export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.fin-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.fin-export-btn:hover:not(:disabled) {
+  background: rgba(var(--btn-color, 34 211 238), 0.1);
+  border-color: var(--btn-color, rgba(34, 211, 238, 0.4));
+  color: var(--text-primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--btn-color, #22d3ee) 20%, transparent);
+  transform: translateY(-1px);
+}
+
+.fin-export-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fin-btn-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin 600ms linear infinite;
+  flex-shrink: 0;
+}
 /* ---- ANIMATED BACKGROUND ---- */
 .bg-canvas {
   position: fixed;
