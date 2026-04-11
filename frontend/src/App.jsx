@@ -365,16 +365,6 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
     }
   }, [safeEvents, activeId, setActiveId]);
 
-  // Phase 10: Debug Layer
-  useEffect(() => {
-    console.log("DEBUG: RAW ITINERARY RECEIVED (LEN):", itinerary?.length);
-    if (safeEvents && safeEvents.length > 0) {
-      console.log("DEBUG: PARSED SAFE EVENTS:", safeEvents);
-    } else if (itinerary && itinerary.length > 100) {
-      console.warn("DEBUG: PARSER RETURNED ZERO EVENTS FOR LONG ITINERARY");
-    }
-  }, [safeEvents, itinerary]);
-
   // Tri-View State
   const [viewMode, setViewMode] = useState('list');
 
