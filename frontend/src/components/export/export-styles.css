@@ -1,0 +1,244 @@
+/* export-styles.css */
+/* 
+ * Strict CSS architectural boundaries for PDF and Image exports.
+ * Avoids any viewport-dependent styling (vh/vw) to ensure html2canvas 
+ * consistency regardless of the user's current window size.
+ */
+
+/* ─── PDF EXPORT ─── */
+.pdf-export-root {
+  position: fixed;
+  top: -15000px; /* Hide completely off-screen */
+  left: 0;
+  width: 794px; /* Exact A4 width at 96dpi */
+  background: transparent;
+  pointer-events: none;
+  z-index: -999;
+}
+
+.pdf-page {
+  width: 794px;
+  height: 1123px; /* Exact A4 height at 96dpi */
+  background: #0a0f1e;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  box-sizing: border-box;
+}
+
+/* Page 1: Cover */
+.pdf-cover-image {
+  width: 100%;
+  height: 600px;
+  object-fit: cover;
+}
+.pdf-cover-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 600px;
+  background: linear-gradient(180deg, rgba(10,15,30,0) 0%, rgba(10,15,30,1) 100%);
+}
+.pdf-cover-content {
+  padding: 0 60px;
+  margin-top: -120px;
+  position: relative;
+  z-index: 2;
+}
+.pdf-cover-brand {
+  font-size: 14px;
+  color: var(--cyan, #22d3ee);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+.pdf-cover-title {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 24px;
+  color: #fff;
+}
+.pdf-cover-meta {
+  display: flex;
+  gap: 30px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 30px;
+}
+.pdf-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pdf-meta-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.pdf-meta-value {
+  font-size: 20px;
+  font-weight: 500;
+  color: #fff;
+}
+
+/* Page N: Itinerary Day */
+.pdf-day-page {
+  padding: 60px;
+}
+.pdf-day-header {
+  border-bottom: 2px solid var(--cyan, #22d3ee);
+  padding-bottom: 20px;
+  margin-bottom: 40px;
+}
+.pdf-day-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.pdf-event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.pdf-event-row {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.pdf-event-time {
+  width: 90px;
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cyan, #22d3ee);
+  padding-top: 4px;
+}
+.pdf-event-body {
+  flex: 1;
+}
+.pdf-event-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
+}
+.pdf-event-place {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.pdf-event-notes {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.5);
+}
+.pdf-event-image-wrap {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111827;
+}
+.pdf-event-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Footer stamp for all pages */
+.pdf-page-footer {
+  position: absolute;
+  bottom: 40px;
+  left: 60px;
+  right: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding-top: 20px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+}
+
+/* ─── SOCIAL SHARE CARD EXPORT ─── */
+.social-export-root {
+  position: fixed;
+  top: -15000px;
+  left: 0;
+  pointer-events: none;
+  z-index: -999;
+}
+
+/* 4:5 Aspect Ratio optimal for Instagram/Socials (1080x1350) */
+.social-card {
+  width: 1080px;
+  height: 1350px;
+  position: relative;
+  background: #0a0f1e;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+.social-card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.social-card-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(10,15,30,0) 20%, rgba(10,15,30,0.8) 60%, rgba(10,15,30,1) 100%);
+}
+.social-card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 100px;
+  box-sizing: border-box;
+}
+.social-card-brand {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--cyan, #22d3ee);
+  margin-bottom: 30px;
+}
+.social-card-title {
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #fff;
+  margin-bottom: 40px;
+}
+.social-card-meta {
+  display: flex;
+  gap: 60px;
+  align-items: center;
+}
+.social-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 32px;
+  font-weight: 500;
+  color: #fff;
+}
+.social-meta-icon {
+  color: var(--cyan, #22d3ee);
+}

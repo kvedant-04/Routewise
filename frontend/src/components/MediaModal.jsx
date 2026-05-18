@@ -1,12 +1,13 @@
 import React from 'react';
 import { MapPin, Clock, X } from 'lucide-react';
+import PremiumImage from './PremiumImage';
 
 /**
  * MediaModal — contained popup (NOT full-screen).
  * Opens centered over page content. Max-width: 740px.
- * Props: event, imageUrl, onClose
+ * Props: event, destination, onClose
  */
-const MediaModal = React.memo(function MediaModal({ event, imageUrl, onClose }) {
+const MediaModal = React.memo(function MediaModal({ event, destination, onClose }) {
   if (!event) return null;
 
   return (
@@ -19,11 +20,13 @@ const MediaModal = React.memo(function MediaModal({ event, imageUrl, onClose }) 
 
         {/* Image */}
         <div className="mm-img-wrap">
-          <img
-            src={imageUrl}
-            alt={event.place || event.activity}
-            className="mm-img"
-            onError={e => { e.target.src = 'https://picsum.photos/seed/modal/900/520'; }}
+          <PremiumImage
+            event={event}
+            destination={destination}
+            priority={true}
+            isModal={true}
+            aspectRatio="auto"
+            className="mm-img-wrapper"
           />
           <span className="mm-day-chip">Day {event.day}</span>
         </div>

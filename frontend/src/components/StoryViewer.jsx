@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, MapPin, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import PremiumImage from './PremiumImage';
 
 const SLIDE_DURATION = 4500; // ms per slide
 
@@ -7,11 +8,10 @@ const SLIDE_DURATION = 4500; // ms per slide
  * StoryViewer — Instagram-like story experience for a single day's activities.
  * Props:
  *   events      — array of safeEvent objects for one day
- *   mediaMap    — { [eventId]: imageUrl }
  *   destination — string
  *   onClose     — function
  */
-const StoryViewer = React.memo(function StoryViewer({ events, mediaMap, destination, onClose }) {
+const StoryViewer = React.memo(function StoryViewer({ events, destination, onClose }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [paused, setPaused] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -73,8 +73,6 @@ const StoryViewer = React.memo(function StoryViewer({ events, mediaMap, destinat
 
   if (!current) return null;
 
-  const imgSrc = mediaMap?.[current.id] || `https://picsum.photos/seed/story${currentIdx}/900/520`;
-
   return (
     <div className="sv-backdrop" onClick={onClose}>
       {/* Story Card */}
@@ -106,13 +104,13 @@ const StoryViewer = React.memo(function StoryViewer({ events, mediaMap, destinat
         </div>
 
         {/* Background image */}
-        <img
+        <PremiumImage
           key={current.id}
-          src={imgSrc}
-          alt={current.place}
-          className="sv-bg-image"
-          loading="eager"
-          onError={e => { e.target.src = `https://picsum.photos/seed/fallback${currentIdx}/900/520`; }}
+          event={current}
+          destination={destination}
+          priority={true}
+          aspectRatio="auto"
+          className="sv-bg-image-wrapper"
         />
         <div className="sv-gradient-overlay" />
 

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Play, Film } from 'lucide-react';
 import StoryViewer from './StoryViewer';
+import PremiumImage from './PremiumImage';
 
 /**
  * StoryCarousel v2 — Day cards that launch Instagram-like StoryViewer on click.
- * Props: safeEvents, mediaMap, destination
+ * Props: safeEvents, destination
  */
-const StoryCarousel = React.memo(function StoryCarousel({ safeEvents, mediaMap, destination }) {
+const StoryCarousel = React.memo(function StoryCarousel({ safeEvents, destination }) {
   const [storyDay, setStoryDay] = useState(null); // dayNum when story is open
   const scrollRef = React.useRef(null);
 
@@ -46,10 +47,6 @@ const StoryCarousel = React.memo(function StoryCarousel({ safeEvents, mediaMap, 
           {days.map((dayNum) => {
             const dayEvents = safeEvents.filter(e => e.day === dayNum);
             const heroEvt = dayEvents[0];
-            const heroImg = heroEvt
-              ? (mediaMap?.[heroEvt.id] || `https://picsum.photos/seed/day${dayNum}cover/560/320`)
-              : `https://picsum.photos/seed/day${dayNum}cover/560/320`;
-
             return (
               <div
                 key={dayNum}
@@ -61,12 +58,11 @@ const StoryCarousel = React.memo(function StoryCarousel({ safeEvents, mediaMap, 
                 aria-label={`Watch Day ${dayNum} story`}
               >
                 <div className="sc-card-image-wrap">
-                  <img
-                    src={heroImg}
-                    alt={`Day ${dayNum}`}
-                    className="sc-card-image"
-                    loading="lazy"
-                    onError={e => { e.target.src = `https://picsum.photos/seed/fb${dayNum}/560/320`; }}
+                  <PremiumImage
+                    event={heroEvt}
+                    destination={destination}
+                    aspectRatio="4/5"
+                    className="sc-card-image-wrapper"
                   />
                   <div className="sc-image-gradient" />
                   <span className="sc-day-pill">Day {dayNum}</span>
@@ -88,7 +84,6 @@ const StoryCarousel = React.memo(function StoryCarousel({ safeEvents, mediaMap, 
       {storyDay !== null && storyEvents.length > 0 && (
         <StoryViewer
           events={storyEvents}
-          mediaMap={mediaMap}
           destination={destination}
           onClose={() => setStoryDay(null)}
         />

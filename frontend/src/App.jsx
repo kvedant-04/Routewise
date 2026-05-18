@@ -13,7 +13,7 @@ import TimelineView from './components/TimelineView';
 import CalendarView from './components/CalendarView';
 import FinancialDashboard from './components/FinancialDashboard';
 import StoryCarousel from './components/StoryCarousel';
-import { buildMediaMap } from './utils/mediaEngine';
+import { preloadAboveTheFold } from './utils/mediaEngine';
 import './index.css';
 
 
@@ -340,6 +340,7 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
             day: day.day || dayIdx + 1,
             time: formatTime(act.start_time || act.time_slot || act.time),
             exactTime: formatTime(act.start_time || act.time_slot || act.time),
+            time_slot: act.time_slot || 'Morning', // VIP: passed to AI image pipeline for mood/orientation
             activity: act.activity || 'Explore area',
             place: act.place || 'Local Landmark',
             duration: formatDuration(isNaN(durNum) ? 60 : durNum),
@@ -368,16 +369,27 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
   // Tri-View State
   const [viewMode, setViewMode] = useState('list');
 
-  // PHASE 13 — Media Map (async, non-blocking, fires after itinerary renders)
-  const [mediaMap, setMediaMap] = useState({});
+  const handleViewChange = (mode) => {
+    React.startTransition(() => {
+      setViewMode(mode);
+    });
+  };
+
+  // PHASE 13.X — Decentralized AI Visual Hydration (Prewarm only)
   useEffect(() => {
     if (!safeEvents || safeEvents.length === 0) return;
-    let cancelled = false;
-    buildMediaMap(safeEvents, destination).then(map => {
-      if (!cancelled) setMediaMap(map);
-    }).catch(() => {}); // silent — media is optional
-    return () => { cancelled = true; };
-  }, [safeEvents, destination]);
+
+    let dayThemeMap = {};
+    try {
+      const parsed = typeof itinerary === 'string' ? JSON.parse(itinerary) : itinerary;
+      if (parsed?.days) {
+        parsed.days.forEach(d => { if (d.day && d.theme) dayThemeMap[d.day] = d.theme; });
+      }
+    } catch (_) {}
+
+    // Preload top 3 above-the-fold images asynchronously; components handle their own hydration
+    preloadAboveTheFold(safeEvents, destination, dayThemeMap);
+  }, [safeEvents, destination, itinerary]);
 
   // PHASE 6 — FALLBACK VIEW
   const FallbackView = ({ markdown }) => (
@@ -386,12 +398,12 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
     </div>
   );
 
-  // PHASE 5 — VIEW SWITCH PERFORMANCE (UX)
+  // PHASE 5 + VIP — VIEW SWITCH PERFORMANCE (UX)
   const renderView = useMemo(() => {
     if (!safeEvents || safeEvents.length === 0) return null;
 
     try {
-      if (viewMode === "list") return <ListView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} mediaMap={mediaMap} />;
+      if (viewMode === "list") return <ListView data={safeEvents} destination={destination} itinerary={itinerary} activeId={activeId} onActivityHover={setActiveId} />;
 
       if (viewMode === "timeline") return <TimelineView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} />;
       if (viewMode === "calendar") return <CalendarView data={safeEvents} activeId={activeId} onActivityHover={setActiveId} />;
@@ -400,7 +412,7 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
       return <FallbackView markdown={itinerary} />;
     }
     return null;
-  }, [viewMode, safeEvents, activeId, itinerary, setActiveId]);
+  }, [viewMode, safeEvents, activeId, itinerary, destination, setActiveId]);
 
   // Fallback UI — premium empty state with step guide
   const FallbackUI = () => (
@@ -468,7 +480,7 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
             <button
               key={mode}
               className={`view-toggle-btn ${viewMode === mode ? 'active' : ''}`}
-              onClick={() => setViewMode(mode)}
+              onClick={() => handleViewChange(mode)}
               style={{
                 background: viewMode === mode ? 'var(--surface-variant)' : 'transparent',
                 border: viewMode === mode ? '1px solid rgba(144, 144, 151, 0.2)' : '1px solid transparent',
@@ -550,7 +562,6 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
               {/* ── PHASE 13: Day Story Carousel ── */}
               <StoryCarousel
                 safeEvents={safeEvents}
-                mediaMap={mediaMap}
                 destination={destination}
               />
             </ErrorBoundary>

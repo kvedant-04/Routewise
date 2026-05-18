@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
 import { MapPin, Clock, Images, ZoomIn } from 'lucide-react';
 import MediaModal from './MediaModal';
+import PremiumImage from './PremiumImage';
 
 /**
  * MediaGallery — responsive photo grid of all activities.
- * Props: safeEvents, mediaMap, destination
+ * Props: safeEvents, destination
  */
-const MediaGallery = React.memo(function MediaGallery({ safeEvents, mediaMap, destination }) {
+const MediaGallery = React.memo(function MediaGallery({ safeEvents, destination }) {
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [imgErrors, setImgErrors] = useState({});
 
   if (!safeEvents || safeEvents.length === 0) return null;
-
-  const handleImgError = (id, seed) => {
-    setImgErrors(prev => ({ ...prev, [id]: `https://picsum.photos/seed/${seed}/800/500` }));
-  };
 
   return (
     <>
@@ -29,7 +25,6 @@ const MediaGallery = React.memo(function MediaGallery({ safeEvents, mediaMap, de
 
         <div className="mg-grid">
           {safeEvents.map((evt, i) => {
-            const imgSrc = imgErrors[evt.id] || mediaMap?.[evt.id] || `https://picsum.photos/seed/${i + 10}/800/500`;
             return (
               <div
                 key={evt.id}
@@ -40,12 +35,11 @@ const MediaGallery = React.memo(function MediaGallery({ safeEvents, mediaMap, de
                 onKeyDown={e => e.key === 'Enter' && setSelectedEvent(evt)}
               >
                 <div className="mg-img-wrap">
-                  <img
-                    src={imgSrc}
-                    alt={evt.place || evt.activity}
-                    className="mg-img"
-                    loading="lazy"
-                    onError={() => handleImgError(evt.id, `err${i}`)}
+                  <PremiumImage
+                    event={evt}
+                    destination={destination}
+                    aspectRatio="1/1"
+                    className="mg-img-wrapper"
                   />
                   <div className="mg-overlay">
                     <ZoomIn size={20} className="mg-zoom-icon" />
@@ -74,7 +68,7 @@ const MediaGallery = React.memo(function MediaGallery({ safeEvents, mediaMap, de
       {selectedEvent && (
         <MediaModal
           event={selectedEvent}
-          imageUrl={imgErrors[selectedEvent.id] || mediaMap?.[selectedEvent.id] || `https://picsum.photos/seed/gallery/800/500`}
+          destination={destination}
           onClose={() => setSelectedEvent(null)}
         />
       )}

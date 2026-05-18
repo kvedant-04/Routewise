@@ -160,6 +160,150 @@ if openrouter_api_key and openrouter_api_key != "your_key_here":
     except Exception as e:
         logger.error(f"Failed to initialize OpenRouter Client: {e}")
 
+# =====================================================================
+# AI VISUAL INTELLIGENCE PIPELINE — Phase VIP-1
+# Endpoint: POST /image-intelligence
+# Returns cinematic search queries + relevance scoring for activity images
+# =====================================================================
+
+class ImageIntelligenceRequest(BaseModel):
+    activity: str
+    place: str
+    destination: str
+    time_slot: str = "Morning"
+    notes: str = ""
+    day_theme: str = ""
+
+class ImageIntelligenceResponse(BaseModel):
+    primary_query: str        # Best cinematic search query
+    fallback_queries: list    # Ordered list of fallback queries
+    category: str             # Semantic category: landmark | food | nature | culture | etc.
+    mood: str                 # Cinematic mood: golden_hour | dramatic | serene | vibrant
+    landmark_key: str         # Specific landmark identifier for curated fallbacks
+
+def generate_cinematic_query(req: ImageIntelligenceRequest) -> dict:
+    """
+    STEP 1: Semantic Understanding Layer
+    Use Gemini Flash to synthesize a cinematic, geographically precise image search query.
+    """
+    if not gemini_client:
+        return _heuristic_query(req)
+
+    prompt = f"""You are an AI visual director for a premium travel platform.
+
+Your job: Given a travel activity, generate the BEST possible image search query that would return a stunning, geographically accurate, emotionally resonant photo.
+
+ACTIVITY DATA:
+- Activity: {req.activity}
+- Place/Venue: {req.place}
+- Destination/City: {req.destination}
+- Time of Day: {req.time_slot}
+- Theme: {req.day_theme}
+- Notes: {req.notes}
+
+RULES:
+1. Primary query must be SPECIFIC to the exact location/place name — never generic.
+2. Include the city/country if the place is a known landmark.
+3. Mood keywords: use "golden hour", "aerial", "cinematic", "interior", "street level" when appropriate.
+4. For food activities: focus on the cuisine type + location (e.g. "fresh sushi Tsukiji Tokyo").
+5. For cultural/historic sites: use the landmark's exact proper name.
+6. NEVER return queries like "travel", "city", "vacation" — they are forbidden.
+
+Respond ONLY with valid JSON, no explanation:
+{{
+  "primary_query": "<the single best image search query>",
+  "fallback_queries": ["<second best>", "<third best — destination-level>", "<category archetype>"],
+  "category": "<one of: landmark | food | nature | culture | nightlife | transport | wellness | shopping>",
+  "mood": "<one of: golden_hour | dramatic | serene | vibrant | intimate | aerial | street>",
+  "landmark_key": "<canonical landmark name or empty string if not a landmark>"
+}}"""
+
+    try:
+        response = gemini_client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.2,
+                max_output_tokens=400,
+            )
+        )
+        import json
+        raw = response.text.strip()
+        data = json.loads(raw)
+        # Validate required keys
+        assert "primary_query" in data and "fallback_queries" in data
+        logger.info(f"[VIP] AI query for '{req.place}': {data['primary_query']}")
+        return data
+    except Exception as e:
+        logger.warning(f"[VIP] Gemini query gen failed ({e}), using heuristic.")
+        return _heuristic_query(req)
+
+
+def _heuristic_query(req: ImageIntelligenceRequest) -> dict:
+    """
+    Deterministic heuristic fallback when AI is unavailable.
+    Still smarter than the old keyword concat approach.
+    """
+    place = req.place.strip()
+    dest = req.destination.strip()
+    activity_lower = req.activity.lower()
+    notes_lower = req.notes.lower()
+    combined = f"{activity_lower} {notes_lower}"
+
+    # Determine category
+    category = "culture"
+    if any(w in combined for w in ["food","eat","dining","restaurant","cafe","market","taste","cuisine","breakfast","lunch","dinner"]):
+        category = "food"
+    elif any(w in combined for w in ["park","garden","beach","nature","mountain","lake","river","hike","trek","forest"]):
+        category = "nature"
+    elif any(w in combined for w in ["museum","gallery","art","exhibit","heritage","history","monument","castle","temple","shrine","palace"]):
+        category = "landmark"
+    elif any(w in combined for w in ["bar","nightlife","cocktail","jazz","club","rooftop","sunset"]):
+        category = "nightlife"
+    elif any(w in combined for w in ["spa","wellness","yoga","relax","massage","resort"]):
+        category = "wellness"
+    elif any(w in combined for w in ["shop","mall","market","boutique","bazaar"]):
+        category = "shopping"
+
+    # Build queries
+    primary = f"{place} {dest}" if dest.lower() not in place.lower() else place
+    fallback1 = f"{dest} {category} photography"
+    fallback2 = f"{dest} travel landmark"
+    fallback3 = category
+
+    mood_map = {
+        "Morning": "golden_hour", "Afternoon": "vibrant",
+        "Evening": "dramatic", "Night": "intimate"
+    }
+    mood = mood_map.get(req.time_slot, "vibrant")
+
+    return {
+        "primary_query": primary,
+        "fallback_queries": [fallback1, fallback2, fallback3],
+        "category": category,
+        "mood": mood,
+        "landmark_key": place if category == "landmark" else ""
+    }
+
+
+@app.post("/image-intelligence", response_model=ImageIntelligenceResponse)
+async def image_intelligence(req: ImageIntelligenceRequest):
+    """
+    AI Visual Intelligence Endpoint.
+    Called by the frontend mediaEngine to get semantically-aware image queries.
+    Returns structured query data — the frontend then calls Unsplash/Pexels directly.
+    """
+    result = generate_cinematic_query(req)
+    return {
+        "primary_query": result.get("primary_query", f"{req.place} {req.destination}"),
+        "fallback_queries": result.get("fallback_queries", [req.destination, "travel landmark"]),
+        "category": result.get("category", "culture"),
+        "mood": result.get("mood", "vibrant"),
+        "landmark_key": result.get("landmark_key", ""),
+    }
+
+
 # (Keep DESTINATIONS and generate_smart_fallback as they are)
 
 import random

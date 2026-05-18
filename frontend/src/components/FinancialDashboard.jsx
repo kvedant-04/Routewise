@@ -5,7 +5,12 @@ import {
 } from 'recharts';
 import { Download, Share2, FileJson, CalendarPlus, MessageCircle, Image, FileText, TrendingUp, Zap, DollarSign } from 'lucide-react';
 import { buildFinancialData, getInsights } from '../utils/financialEngine';
-import { exportJSON, exportImage, exportPDF, buildGoogleCalendarUrl, buildWhatsAppText } from '../utils/exportEngine';
+import { exportJSON, buildGoogleCalendarUrl } from '../utils/exportEngine';
+import { formatForWhatsApp, formatForClipboard } from '../utils/shareFormatters';
+import { generatePDF } from '../utils/pdfEngine';
+import { generateSocialImage } from '../utils/imageEngine';
+import PdfTemplate from './export/PdfTemplate';
+import SocialShareCard from './export/SocialShareCard';
 
 const CHART_COLORS = ['#22d3ee', '#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -55,17 +60,44 @@ function InsightPanel({ insights }) {
 
 function ExportPanel({ safeEvents, financialData, itinerary, destination }) {
   const [exporting, setExporting] = useState(null);
+  const [loadingText, setLoadingText] = useState('');
 
-  const handlePDF = async () => {
+  // When these are true, the hidden React templates mount to DOM
+  const [mountPdf, setMountPdf] = useState(false);
+  const [mountImg, setMountImg] = useState(false);
+
+  const handlePDF = () => {
     setExporting('pdf');
-    try { await exportPDF(safeEvents, financialData, destination); }
-    finally { setExporting(null); }
+    setLoadingText('Preparing Document...');
+    setMountPdf(true); // Mounts `<PdfTemplate>`
   };
 
-  const handleImage = async () => {
+  const handlePdfReady = async () => {
+    try {
+      await generatePDF('pdf-export-root', destination, setLoadingText);
+    } catch (err) {
+      console.error('PDF export failed', err);
+    } finally {
+      setExporting(null);
+      setMountPdf(false);
+    }
+  };
+
+  const handleImage = () => {
     setExporting('image');
-    try { await exportImage('itinerary-canvas'); }
-    finally { setExporting(null); }
+    setLoadingText('Preparing Layout...');
+    setMountImg(true); // Mounts `<SocialShareCard>`
+  };
+
+  const handleImgReady = async () => {
+    try {
+      await generateSocialImage('social-export-root', destination, setLoadingText);
+    } catch (err) {
+      console.error('Image export failed', err);
+    } finally {
+      setExporting(null);
+      setMountImg(false);
+    }
   };
 
   const handleJSON = () => {
@@ -73,8 +105,20 @@ function ExportPanel({ safeEvents, financialData, itinerary, destination }) {
   };
 
   const handleWhatsApp = () => {
-    const url = buildWhatsAppText(safeEvents, financialData, destination);
+    const url = formatForWhatsApp(safeEvents, financialData, destination);
     window.open(url, '_blank', 'noopener');
+  };
+
+  const handleClipboard = async () => {
+    setExporting('clipboard');
+    try {
+      const text = formatForClipboard(safeEvents, financialData, destination);
+      await navigator.clipboard.writeText(text);
+      setLoadingText('Copied!');
+      setTimeout(() => setExporting(null), 1500);
+    } catch (err) {
+      setExporting(null);
+    }
   };
 
   const handleCalendar = () => {
@@ -87,8 +131,9 @@ function ExportPanel({ safeEvents, financialData, itinerary, destination }) {
     { id: 'pdf', label: 'PDF', icon: FileText, action: handlePDF, color: '#ef4444' },
     { id: 'image', label: 'Image', icon: Image, action: handleImage, color: '#6366f1' },
     { id: 'json', label: 'JSON', icon: FileJson, action: handleJSON, color: '#22d3ee' },
+    { id: 'clipboard', label: 'Copy', icon: FileText, action: handleClipboard, color: '#a855f7' },
     { id: 'calendar', label: 'Calendar', icon: CalendarPlus, action: handleCalendar, color: '#10b981' },
-    { id: 'whatsapp', label: 'Share', icon: MessageCircle, action: handleWhatsApp, color: '#22c55e' },
+    { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, action: handleWhatsApp, color: '#22c55e' },
   ];
 
   return (
@@ -107,14 +152,32 @@ function ExportPanel({ safeEvents, financialData, itinerary, destination }) {
             style={{ '--btn-color': color }}
             title={`Export as ${label}`}
           >
-            {exporting === id
+            {exporting === id && (id === 'pdf' || id === 'image')
               ? <span className="fin-btn-spinner" />
               : <Icon size={16} />
             }
-            <span>{exporting === id ? 'Exporting…' : label}</span>
+            <span>{exporting === id ? (loadingText || 'Exporting…') : label}</span>
           </button>
         ))}
       </div>
+
+      {mountPdf && (
+        <PdfTemplate 
+          safeEvents={safeEvents} 
+          financialData={financialData} 
+          destination={destination}
+          onReady={handlePdfReady}
+        />
+      )}
+
+      {mountImg && (
+        <SocialShareCard 
+          safeEvents={safeEvents} 
+          financialData={financialData} 
+          destination={destination}
+          onReady={handleImgReady}
+        />
+      )}
     </div>
   );
 }
