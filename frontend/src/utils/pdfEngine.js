@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { getSafeFileName } from './exportEngine';
 
 /**
  * pdfEngine.js
@@ -41,7 +42,7 @@ export async function generatePDF(containerId, destination, onProgress) {
       useCORS: true,
       allowTaint: false,
       logging: false,
-      backgroundColor: '#0a0f1e', // Dark mode background
+      backgroundColor: '#ffffff', // Light mode background
       onclone: (clonedDoc) => {
         // Prevent any scrollbar artifacts on the clone
         const el = clonedDoc.getElementById(pageEl.id || '');
@@ -68,6 +69,6 @@ export async function generatePDF(containerId, destination, onProgress) {
     onProgress('Finalizing PDF...');
   }
 
-  const safeDest = (destination || 'Itinerary').toLowerCase().replace(/\s+/g, '-');
-  doc.save(`routewise-${safeDest}-${Date.now()}.pdf`);
+  const filename = getSafeFileName(destination, 'pdf', 'pdf');
+  doc.save(filename);
 }

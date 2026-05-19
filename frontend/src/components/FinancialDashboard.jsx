@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { Download, Share2, FileJson, CalendarPlus, MessageCircle, Image, FileText, TrendingUp, Zap, DollarSign } from 'lucide-react';
 import { buildFinancialData, getInsights } from '../utils/financialEngine';
-import { exportJSON, buildGoogleCalendarUrl } from '../utils/exportEngine';
+import { exportJSON, exportICS } from '../utils/exportEngine';
 import { formatForWhatsApp, formatForClipboard } from '../utils/shareFormatters';
 import { generatePDF } from '../utils/pdfEngine';
 import { generateSocialImage } from '../utils/imageEngine';
@@ -68,7 +68,7 @@ function ExportPanel({ safeEvents, financialData, itinerary, destination }) {
 
   const handlePDF = () => {
     setExporting('pdf');
-    setLoadingText('Preparing Document...');
+    setLoadingText('Preparing PDF...');
     setMountPdf(true); // Mounts `<PdfTemplate>`
   };
 
@@ -85,7 +85,7 @@ function ExportPanel({ safeEvents, financialData, itinerary, destination }) {
 
   const handleImage = () => {
     setExporting('image');
-    setLoadingText('Preparing Layout...');
+    setLoadingText('Rendering Itinerary...');
     setMountImg(true); // Mounts `<SocialShareCard>`
   };
 
@@ -101,7 +101,15 @@ function ExportPanel({ safeEvents, financialData, itinerary, destination }) {
   };
 
   const handleJSON = () => {
-    exportJSON(itinerary);
+    setExporting('json');
+    setLoadingText('Generating JSON...');
+    try {
+      exportJSON(itinerary, destination);
+    } catch (err) {
+      console.error('JSON export failed', err);
+    } finally {
+      setTimeout(() => setExporting(null), 1000);
+    }
   };
 
   const handleWhatsApp = () => {
@@ -111,6 +119,7 @@ function ExportPanel({ safeEvents, financialData, itinerary, destination }) {
 
   const handleClipboard = async () => {
     setExporting('clipboard');
+    setLoadingText('Copying...');
     try {
       const text = formatForClipboard(safeEvents, financialData, destination);
       await navigator.clipboard.writeText(text);
@@ -123,8 +132,15 @@ function ExportPanel({ safeEvents, financialData, itinerary, destination }) {
 
   const handleCalendar = () => {
     if (!safeEvents.length) return;
-    const url = buildGoogleCalendarUrl(safeEvents[0]);
-    window.open(url, '_blank', 'noopener');
+    setExporting('calendar');
+    setLoadingText('Generating Calendar...');
+    try {
+      exportICS(safeEvents, destination);
+    } catch (err) {
+      console.error('Calendar export failed', err);
+    } finally {
+      setTimeout(() => setExporting(null), 1000);
+    }
   };
 
   const buttons = [

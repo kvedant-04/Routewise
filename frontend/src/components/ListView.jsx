@@ -56,7 +56,7 @@ const ListView = React.memo(({ data, destination, activeId, onActivityHover }) =
                           event={act}
                           destination={destination}
                           priority={dayNum === 1 && idx < 2} // Tier 1 above-the-fold
-                          aspectRatio="16/9"
+                          aspectRatio="auto"
                           className="lv-hero-img-wrapper"
                         />
                         <div className="lv-hero-overlay">

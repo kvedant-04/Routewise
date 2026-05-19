@@ -1,4 +1,5 @@
 import html2canvas from 'html2canvas';
+import { getSafeFileName, downloadBlob } from './exportEngine';
 
 /**
  * imageEngine.js
@@ -21,7 +22,7 @@ export async function generateSocialImage(containerId, destination, onProgress) 
     useCORS: true,
     allowTaint: false,
     logging: false,
-    backgroundColor: '#0a0f1e'
+    backgroundColor: '#ffffff' // Light mode premium card background
   });
 
   if (onProgress) {
@@ -30,15 +31,9 @@ export async function generateSocialImage(containerId, destination, onProgress) 
 
   canvas.toBlob((blob) => {
     if (!blob) throw new Error('Failed to create image blob.');
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const safeDest = (destination || 'Itinerary').toLowerCase().replace(/\s+/g, '-');
-    a.download = `routewise-${safeDest}-social-${Date.now()}.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    
+    const filename = getSafeFileName(destination, 'image', 'png');
+    downloadBlob(blob, filename);
     
     // Cleanup canvas memory
     canvas.width = 0;

@@ -23,6 +23,7 @@ const PremiumImage = React.memo(({
 }) => {
   const [status, setStatus] = useState(priority ? 'loading' : 'idle');
   const [src, setSrc] = useState(null);
+  const [meta, setMeta] = useState({ orientation: 'landscape', width: 1200, height: 800 });
   const containerRef = useRef(null);
   const observerRef = useRef(null);
 
@@ -51,20 +52,28 @@ const PremiumImage = React.memo(({
       setStatus('loading');
       
       try {
-        let finalUrl = await fetchSingleImage(event, destination, dayTheme);
+        let result = await fetchSingleImage(event, destination, dayTheme);
         
         // Strip existing &w or &q and inject adaptive quality if Unsplash
-        if (finalUrl && finalUrl.includes('unsplash.com')) {
-          finalUrl = finalUrl.split('&w=')[0] + getQualityParams();
+        if (result && result.url && result.url.includes('unsplash.com')) {
+          result.url = result.url.split('&w=')[0] + getQualityParams();
         }
 
         if (isMounted) {
-          setSrc(finalUrl || getFallbackImage(event?.category));
-          // Note: we don't set status to 'success' until the actual <img> onLoad fires
+          if (result && result.url) {
+            setSrc(result.url);
+            setMeta({ orientation: result.orientation, width: result.width, height: result.height });
+          } else {
+            const fallback = getFallbackImage(event?.category);
+            setSrc(fallback.url);
+            setMeta({ orientation: fallback.orientation, width: fallback.width, height: fallback.height });
+          }
         }
       } catch (err) {
         if (isMounted) {
-          setSrc(getFallbackImage(event?.category));
+          const fallback = getFallbackImage(event?.category);
+          setSrc(fallback.url);
+          setMeta({ orientation: fallback.orientation, width: fallback.width, height: fallback.height });
         }
       }
     };
@@ -107,16 +116,34 @@ const PremiumImage = React.memo(({
   const handleLoad = () => setStatus('success');
   const handleError = () => {
     setStatus('error');
-    setSrc(getFallbackImage(event?.category));
+    const fallback = getFallbackImage(event?.category);
+    setSrc(fallback.url);
+    setMeta({ orientation: fallback.orientation, width: fallback.width, height: fallback.height });
   };
 
   const lowEndClass = isLowEnd() ? 'pi-low-end' : '';
 
+  // Compute dynamic bounded aspect ratio if the prop is "auto" or metadata-driven
+  const computedRatio = aspectRatio === 'auto' 
+    ? (meta.width && meta.height ? `${meta.width} / ${meta.height}` : '16/9') 
+    : aspectRatio;
+    
+  const isPortrait = meta.orientation === 'portrait';
+  const ratio = meta.width && meta.height ? meta.width / meta.height : 1.77;
+  const isPanorama = ratio >= 2.1;
+
+  let orientationClass = 'is-landscape';
+  if (isPortrait) {
+    orientationClass = 'is-portrait';
+  } else if (isPanorama) {
+    orientationClass = 'is-panorama';
+  }
+
   return (
     <div 
       ref={containerRef} 
-      className={`premium-image-container ${className}`} 
-      style={{ aspectRatio }}
+      className={`premium-image-container ${className} ${orientationClass}`} 
+      style={{ aspectRatio: computedRatio }}
     >
       {/* Skeleton Layer */}
       {status !== 'success' && (
@@ -128,7 +155,7 @@ const PremiumImage = React.memo(({
         <img
           src={src}
           alt={alt || event?.activity || 'Activity Image'}
-          className={`premium-image-reveal ${status === 'success' ? 'is-loaded' : ''} ${lowEndClass}`}
+          className={`premium-image-reveal ${status === 'success' ? 'is-loaded' : ''} ${lowEndClass} ${orientationClass}`}
           onLoad={handleLoad}
           onError={handleError}
           decoding="async" // Anti-jank decoding

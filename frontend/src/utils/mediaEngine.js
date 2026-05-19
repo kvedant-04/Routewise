@@ -209,8 +209,19 @@ async function fetchFromUnsplash(query, mood = 'vibrant') {
     const imgDesc = `${data.description || ''} ${data.alt_description || ''} ${data.tags?.map(t => t.title).join(' ') || ''}`.toLowerCase();
     if (scoreRelevance(query, imgDesc) < 0.15) return null;
 
+    // Phase 13.X: Image Quality Gating
+    if (data.width && data.height) {
+      if (data.width < 800 || data.height < 600) return null; // Reject low res
+      if (data.width / data.height > 3) return null; // Reject extreme panoramic
+    }
+
     seenImageIds.add(data.id);
-    return data?.urls?.regular ? `${data.urls.regular}&w=1200&q=85` : null;
+    return data?.urls?.regular ? {
+      url: `${data.urls.regular}&w=1200&q=85`,
+      width: data.width || 1200,
+      height: data.height || 800,
+      orientation: data.width > data.height ? 'landscape' : 'portrait'
+    } : null;
   } catch { return null; }
 }
 
@@ -232,12 +243,24 @@ async function fetchFromPexels(query) {
     const scored = validPhotos.map(p => ({
       id: `pexels-${p.id}`,
       url: p.src?.large2x || p.src?.large,
+      width: p.width,
+      height: p.height,
       score: scoreRelevance(query, `${p.alt || ''} ${p.photographer_url || ''}`.toLowerCase()),
     })).sort((a, b) => b.score - a.score);
 
-    if (scored[0]) {
-      seenImageIds.add(scored[0].id);
-      return scored[0].url;
+    const top = scored[0];
+    if (top) {
+      if (top.width && top.height) {
+        if (top.width < 800 || top.height < 600) return null;
+        if (top.width / top.height > 3) return null;
+      }
+      seenImageIds.add(top.id);
+      return {
+        url: top.url,
+        width: top.width || 1200,
+        height: top.height || 800,
+        orientation: top.width > top.height ? 'landscape' : 'portrait'
+      };
     }
     return null;
   } catch { return null; }
@@ -252,17 +275,28 @@ function scoreRelevance(query, imageMetaText) {
 }
 
 function getSmartFallback(intelligence, destination) {
+  let fallbackUrl = null;
   const lk = (intelligence.landmark_key || '').toLowerCase().trim();
   if (lk) {
     for (const [key, url] of Object.entries(LANDMARK_LIBRARY)) {
-      if (lk.includes(key) || key.includes(lk)) return url;
+      if (lk.includes(key) || key.includes(lk)) { fallbackUrl = url; break; }
     }
   }
-  const destLower = (destination || '').toLowerCase().trim();
-  for (const [key, url] of Object.entries(LANDMARK_LIBRARY)) {
-    if (key.includes(destLower) || destLower.includes(key.split(' ')[0])) return url;
+  if (!fallbackUrl) {
+    const destLower = (destination || '').toLowerCase().trim();
+    for (const [key, url] of Object.entries(LANDMARK_LIBRARY)) {
+      if (key.includes(destLower) || destLower.includes(key.split(' ')[0])) { fallbackUrl = url; break; }
+    }
   }
-  return CATEGORY_ARCHETYPES[intelligence.category || 'default'] || CATEGORY_ARCHETYPES.default;
+  if (!fallbackUrl) {
+    fallbackUrl = CATEGORY_ARCHETYPES[intelligence.category || 'default'] || CATEGORY_ARCHETYPES.default;
+  }
+  return {
+    url: fallbackUrl,
+    width: 1200,
+    height: 800,
+    orientation: 'landscape'
+  };
 }
 
 async function fetchActivityImageInternal(evt, destination, dayTheme = '') {
@@ -300,7 +334,8 @@ async function fetchActivityImageInternal(evt, destination, dayTheme = '') {
  * Used by <PremiumImage /> for isolated hydration.
  */
 export async function fetchSingleImage(evt, destination, dayTheme = '') {
-  if (!evt || !evt.id) return CATEGORY_ARCHETYPES.default;
+  const defaultFallback = { url: CATEGORY_ARCHETYPES.default, width: 1200, height: 800, orientation: 'landscape' };
+  if (!evt || !evt.id) return defaultFallback;
   const cacheKey = `${evt.id}::${destination}`;
   
   // 1. Check LRU Cache
@@ -321,7 +356,7 @@ export async function fetchSingleImage(evt, destination, dayTheme = '') {
     })
     .catch(() => {
       activeRequestMap.delete(cacheKey);
-      return CATEGORY_ARCHETYPES.default;
+      return { url: CATEGORY_ARCHETYPES.default, width: 1200, height: 800, orientation: 'landscape' };
     });
 
   activeRequestMap.set(cacheKey, fetchPromise);
@@ -332,7 +367,12 @@ export async function fetchSingleImage(evt, destination, dayTheme = '') {
  * Get category fallback
  */
 export function getFallbackImage(category = 'default') {
-  return CATEGORY_ARCHETYPES[category] || CATEGORY_ARCHETYPES.default;
+  return {
+    url: CATEGORY_ARCHETYPES[category] || CATEGORY_ARCHETYPES.default,
+    width: 1200,
+    height: 800,
+    orientation: 'landscape'
+  };
 }
 
 /**

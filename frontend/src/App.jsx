@@ -417,11 +417,12 @@ const ItineraryCanvas = React.memo(function ItineraryCanvas({ itinerary, loading
   // Fallback UI — premium empty state with step guide
   const FallbackUI = () => (
     <div className="itinerary-empty">
-      <div className="empty-orb" aria-hidden="true">
-        <div className="empty-orb-inner" />
-        <div className="empty-orb-ring" />
+      <div className="empty-state-illustration" aria-hidden="true">
+        <div className="illustration-backdrop">
+          <Compass className="illustration-icon" />
+        </div>
       </div>
-      <p className="empty-title">Your journey unfolds here</p>
+      <h2 className="empty-title">Your journey unfolds here</h2>
       <p className="empty-desc">
         Let Routewise's multi-agent AI craft a hyper-personalized itinerary
         in seconds — complete with maps, budgets, and hidden gems.
